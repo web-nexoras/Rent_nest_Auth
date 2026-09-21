@@ -1,18 +1,13 @@
 const mongoose = require("mongoose");
 const bcrypt = require("bcrypt");
-const crypto = require("crypto");
-
 
 const authSchema = new mongoose.Schema(
   {
-    fullname: {
+    name: {
       type: String,
-      required: [true, "Fullname is required"],
+      required: [true, "Name is required"],
       trim: true,
-      minlength: [2, "Fullname must be at least 2 characters"],
-      maxlength: [50, "Fullname cannot exceed 50 characters"],
     },
-
     email: {
       type: String,
       required: [true, "Email is required"],
@@ -20,95 +15,80 @@ const authSchema = new mongoose.Schema(
       lowercase: true,
       trim: true,
     },
-
+    phone: {
+      type: String,
+      required: [true, "Phone number is required"],
+      trim: true,
+    },
     password: {
       type: String,
       required: [true, "Password is required"],
-      minlength: [6, "Password must be at least 6 characters"],
+      minlength: [4, "Password must be at least 4 characters"],
+      maxlength: [6, "Password must not exceed 6 characters"],
       select: false,
     },
-
-    avatar: {
-      type: String,
-      default: "",
-      trim: true,
-    },
-
-    address: {
-      type: String,
-      trim: true,
-      maxlength: [200, "Address cannot exceed 200 characters"],
-    },
-
-    otp: {
-      type: String,
-      default: null,
-    },
-
-    otpExpires: {
-      type: Date,
-      default: null,
-    },
-
-    isVerified: {
-      type: Boolean,
-      default: false,
-    },
-
     role: {
       type: String,
-      enum: ["user", "admin", "superadmin"],
-      default: "user",
+      enum: ["admin", "tenant"],
+      default: "tenant",
     },
-
-    resetPasswordToken: {
+    approvalStatus: {
       type: String,
+      enum: ["pending", "approved", "rejected"],
+      default: "pending",
+    },
+    assignedUnit: {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: "Unit",
       default: null,
     },
-
-    resetPasswordExpires: {
-      type: Date,
+    isActive: {
+      type: Boolean,
+      default: true,
+    },
+    presentAddress: {
+      type: String,
+      trim: true,
+    },
+    permanentAddress: {
+      type: String,
+      trim: true,
+    },
+    nidNumber: {
+      type: String,
+      trim: true,
+    },
+    occupation: {
+      type: String,
+      trim: true,
+    },
+    profileImage: {
+      type: String,
       default: null,
     },
   },
-  {
-    timestamps: true,
-  }
+  { timestamps: true },
 );
 
-//--------Password Hashing
-authSchema.pre("save", async function () {
-
-  if (!this.isModified("password")) {
-    return;
+//--------- Admins are auto approved 
+authSchema.pre("save", function (next) {
+  if (this.role === "admin") {
+    this.approvalStatus = "approved";
   }
-
-  const salt = await bcrypt.genSalt(10);
-
-  this.password = await bcrypt.hash(this.password, salt);
+  next();
 });
 
+//---------- Hash password before saving to the database
+authSchema.pre("save", async function (next) {
+  if (!this.isModified("password")) return next();
+  const salt = await bcrypt.genSalt(10);
+  this.password = await bcrypt.hash(this.password, salt);
+  next();
+});
 
-//-------- Compare Password
-authSchema.methods.comparePassword = function (userPassword) {
-  return bcrypt.compare(userPassword, this.password);
+//--------- compare entered password with hashed one
+authSchema.methods.matchPassword = async function (enteredPassword) {
+  return bcrypt.compare(enteredPassword, this.password);
 };
-
-
-// -------create password reset token
-
-authSchema.methods.createPasswordResetToken = function () {
-  const resetToken = crypto.randomBytes(32).toString("hex");
-
-  this.resetPasswordToken = crypto
-    .createHash("sha256")
-    .update(resetToken)
-    .digest("hex");
-
-  this.resetPasswordExpires = Date.now() + 10 * 60 * 1000;
-
-  return resetToken;
-};
-
 
 module.exports = mongoose.model("User", authSchema);
