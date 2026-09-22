@@ -3,10 +3,10 @@ const { asyncHandler } = require("../../middlewares/asyncHandler");
 const { generateOTP } = require("../../helpers/auth/authUtils");
 
 const { mailSender } = require("../../helpers/email/mailService");
+
 const authSchema = require("../../models/authSchema");
 
-
-// -------- Resend OTP Controller 
+// -------- Resend OTP Controller
 const resendOtp = asyncHandler(async (req, res) => {
   const { email } = req.body;
 
@@ -19,7 +19,7 @@ const resendOtp = asyncHandler(async (req, res) => {
 
   const user = await authSchema.findOne({
     email,
-    isVerified: false,
+    isVerified: false
   });
 
   if (!user) {
@@ -29,18 +29,18 @@ const resendOtp = asyncHandler(async (req, res) => {
     });
   }
 
-  //----Generate new OTP
+  // Generate new OTP
   const otp = generateOTP();
 
   user.otp = otp;
-  user.otpExpires = new Date(Date.now() + 5 * 60 * 1000);
+  user.otpExpiry = new Date(Date.now() + 5 * 60 * 1000);
 
   await user.save();
 
-  //----Send OTP to  email
+  // Send OTP to email
   await mailSender({
-    email,
-    subject: "OTP Verification",
+    email: normalizedEmail,
+    subject: "Rent Nest - OTP Verification",
     otp,
   });
 
@@ -51,5 +51,5 @@ const resendOtp = asyncHandler(async (req, res) => {
 });
 
 module.exports = {
-  resendOtp
+  resendOtp,
 };

@@ -1,32 +1,31 @@
 const authSchema = require("../../models/authSchema");
-const {asyncHandler} = require("../../middlewares/asyncHandler");
-const { generateAccessToken, generateRefreshToken } = require("../../helpers/auth/authUtils");
 
+const { asyncHandler } = require("../../middlewares/asyncHandler");
 
-
+const {
+  generateAccessToken,
+  generateRefreshToken,
+} = require("../../helpers/auth/authUtils");
 
 // Cookie Configuration
 const cookieConfig = {
   httpOnly: true,
   secure: process.env.NODE_ENV === "production",
   sameSite: "strict",
-  maxAge: 7 * 24 * 60 * 60 * 1000, // 7 Days
+  maxAge: 7 * 24 * 60 * 60 * 1000,
 };
 
-// ----Signin Controller 
-
+// ---- Signin Controller
 const signin = asyncHandler(async (req, res) => {
-
-    const { email, password } = req.body;
+  const { email, password } = req.body;
 
   if (!email || !password) {
     return res.status(400).json({
       success: false,
-      message: "Email and Password are required",
+      message: "Email and password are required",
     });
   }
 
-  // 3. Find user
   const user = await authSchema.findOne({ email }).select("+password");
 
   if (!user) {
@@ -43,8 +42,32 @@ const signin = asyncHandler(async (req, res) => {
     });
   }
 
-  //------Compare password
-  const isMatch = await user.comparePassword(password);
+  if (!user.isActive) {
+    return res.status(403).json({
+      success: false,
+      message: "Your account is inactive",
+    });
+  }
+
+  // Check tenant approval
+  if (user.role === "tenant" && user.approvalStatus !== "approved") {
+    if (user.approvalStatus === "pending") {
+      return res.status(403).json({
+        success: false,
+        message: "Your account is under review",
+      });
+    }
+
+    if (user.approvalStatus === "rejected") {
+      return res.status(403).json({
+        success: false,
+        message: "Your account has been rejected",
+      });
+    }
+  }
+
+  // Compare password
+  const isMatch = await user.matchPassword(password);
 
   if (!isMatch) {
     return res.status(401).json({
@@ -53,10 +76,10 @@ const signin = asyncHandler(async (req, res) => {
     });
   }
 
-  //---Generate access token
+  // Generate access token
   const accessToken = generateAccessToken(user);
 
-  //----=Generate refresh token
+  // Generate refresh token
   const refreshToken = generateRefreshToken(user);
 
   return res
@@ -68,10 +91,11 @@ const signin = asyncHandler(async (req, res) => {
       message: "Signin successful",
       user: {
         _id: user._id,
-        fullname: user.fullname,
+        name: user.name,
         email: user.email,
+        phone: user.phone,
         role: user.role,
-        avatar: user.avatar,
+        profileImage: user.profileImage,
       },
     });
 });

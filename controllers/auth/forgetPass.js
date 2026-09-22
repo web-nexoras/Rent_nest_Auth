@@ -1,10 +1,15 @@
 const authSchema = require("../../models/authSchema");
 
-const { isValidEmail } = require("../../helpers/auth/authUtils");
+const {
+  isValidEmail,
+  generateResetToken,
+} = require("../../helpers/auth/authUtils");
+
 const { mailSender } = require("../../helpers/email/mailService");
 
 const { asyncHandler } = require("../../middlewares/asyncHandler");
 
+// -------- Forgot Password Controller
 const forgotPassword = asyncHandler(async (req, res) => {
   const { email } = req.body;
 
@@ -22,8 +27,11 @@ const forgotPassword = asyncHandler(async (req, res) => {
     });
   }
 
-  const user = await authSchema.findOne({ email });
+  const user = await authSchema.findOne({
+    email,
+  });
 
+  // Don't reveal whether the email exists
   if (!user) {
     return res.status(200).json({
       success: true,
@@ -32,7 +40,11 @@ const forgotPassword = asyncHandler(async (req, res) => {
     });
   }
 
-  const resetToken = user.createPasswordResetToken();
+  // Generate reset token
+  const resetToken = generateResetToken();
+
+  user.resetPasswordToken = resetToken;
+  user.resetPasswordExpiry = new Date(Date.now() + 15 * 60 * 1000);
 
   await user.save({
     validateBeforeSave: false,
@@ -43,12 +55,13 @@ const forgotPassword = asyncHandler(async (req, res) => {
   try {
     await mailSender({
       email: user.email,
-      subject: "Password Reset Request",
+      subject: "Rent Nest - Password Reset",
       resetLink,
     });
   } catch (mailError) {
+    // Remove token if email sending fails
     user.resetPasswordToken = null;
-    user.resetPasswordExpires = null;
+    user.resetPasswordExpiry = null;
 
     await user.save({
       validateBeforeSave: false,

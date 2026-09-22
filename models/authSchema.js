@@ -3,7 +3,6 @@ const bcrypt = require("bcrypt");
 
 const authSchema = new mongoose.Schema(
   {
-    // ---------------- Name ----------------
     name: {
       type: String,
       required: [true, "Name is required"],
@@ -97,13 +96,25 @@ const authSchema = new mongoose.Schema(
       type: String,
       default: null,
     },
+
+    resetPasswordToken: {
+      type: String,
+      default: null,
+      select: false,
+    },
+
+    resetPasswordExpiry: {
+      type: Date,
+      default: null,
+      select: false,
+    },
   },
   {
     timestamps: true,
-  }
+  },
 );
 
-// ---------------- Admins are auto approved 
+// ---------------- Admins are auto approved
 authSchema.pre("save", function (next) {
   if (this.role === "admin") {
     this.approvalStatus = "approved";
@@ -112,7 +123,7 @@ authSchema.pre("save", function (next) {
   next();
 });
 
-// ------------Hash password before saving 
+// ---------------- Hash password before saving
 authSchema.pre("save", async function (next) {
   if (!this.isModified("password")) {
     return next();
@@ -125,7 +136,7 @@ authSchema.pre("save", async function (next) {
   next();
 });
 
-// ---------------- Compare password 
+// ---------------- Compare password
 authSchema.methods.matchPassword = async function (enteredPassword) {
   return bcrypt.compare(enteredPassword, this.password);
 };

@@ -1,9 +1,11 @@
 const authSchema = require("../../models/authSchema");
-const {asyncHandler} = require("../../middlewares/asyncHandler");
+const { asyncHandler } = require("../../middlewares/asyncHandler");
 
+// ---------------- Verify OTP Controller
 const verifyOtp = asyncHandler(async (req, res) => {
   const { email, otp } = req.body;
 
+  // -------- Validate input
   if (!email || !otp) {
     return res.status(400).json({
       success: false,
@@ -11,13 +13,17 @@ const verifyOtp = asyncHandler(async (req, res) => {
     });
   }
 
-  const user = await authSchema.findOne({
-    email,
-    otp,
-    otpExpires: { $gt: new Date() },
-    isVerified: false,
-  });
+  // -------- Find user with valid OTP
+  const user = await authSchema
+    .findOne({
+      email,
+      otp,
+      otpExpiry: { $gt: new Date() },
+      isVerified: false,
+    })
+    .select("+otp +otpExpiry");
 
+  // -------- Invalid or expired OTP
   if (!user) {
     return res.status(400).json({
       success: false,
@@ -25,12 +31,14 @@ const verifyOtp = asyncHandler(async (req, res) => {
     });
   }
 
+  // -------- Verify user
   user.isVerified = true;
   user.otp = null;
-  user.otpExpires = null;
+  user.otpExpiry = null;
 
   await user.save();
 
+  // -------- Response
   return res.status(200).json({
     success: true,
     message: "OTP verified successfully",

@@ -38,10 +38,16 @@ const generateRefreshToken = (user) => {
 };
 
 
+// -----------generateResetToken
+const generateResetToken = () => {
+  return crypto.randomBytes(32).toString("hex");
+};
+
 
 module.exports = {
   isValidEmail,
   generateOTP,
   generateAccessToken,
-  generateRefreshToken
+  generateRefreshToken,
+  generateResetToken
 };

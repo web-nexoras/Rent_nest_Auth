@@ -8,9 +8,10 @@ const {
 
 // -------- Update Profile Controller
 const updateProfile = asyncHandler(async (req, res) => {
-  const { fullname, address } = req.body;
+  const { name, presentAddress, permanentAddress, nidNumber, occupation } =
+    req.body;
 
-  const avatar = req.file || req.files?.[0];
+  const profileImage = req.file || req.files?.[0];
 
   const user = await authSchema.findById(req.user._id);
 
@@ -21,29 +22,43 @@ const updateProfile = asyncHandler(async (req, res) => {
     });
   }
 
-  if (fullname?.trim()) {
-    user.fullname = fullname;
+  if (name?.trim()) {
+    user.name = name;
   }
 
-  if (address?.trim()) {
-    user.address = address;
+  if (presentAddress?.trim()) {
+    user.presentAddress = presentAddress;
   }
 
-  if (avatar) {
-    const oldAvatar = user.avatar;
+  if (permanentAddress?.trim()) {
+    user.permanentAddress = permanentAddress;
+  }
 
-    const avatarUrl = await uploadCloudinary({
-      mimetype: avatar.mimetype,
-      imgBuffer: avatar.buffer,
+  if (nidNumber?.trim()) {
+    user.nidNumber = nidNumber;
+  }
+
+  if (occupation?.trim()) {
+    user.occupation = occupation;
+  }
+
+  // ----------Update Profile Image
+  if (profileImage) {
+    const oldProfileImage = user.profileImage;
+
+    const profileImageUrl = await uploadCloudinary({
+      mimetype: profileImage.mimetype,
+      imgBuffer: profileImage.buffer,
     });
 
-    user.avatar = avatarUrl;
+    user.profileImage = profileImageUrl;
 
-    if (oldAvatar) {
+    //--------Delete old image from Cloudinary
+    if (oldProfileImage) {
       try {
-        await destroyFromCloudinary(oldAvatar);
+        await destroyFromCloudinary(oldProfileImage);
       } catch (error) {
-        console.error("Old avatar delete error:", error);
+        console.error("Old profile image delete error:", error);
       }
     }
   }
