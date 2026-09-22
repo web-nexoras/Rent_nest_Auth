@@ -7,12 +7,13 @@ const authSchema = require("../../models/authSchema");
 
 // -----------signup controller
 const signup = asyncHandler(async (req, res) => {
-  const { fullname, email, password } = req.body;
+  
+  const { name, email, phone, password } = req.body;
 
-  if (!fullname) {
+  if (!name) {
     return res.status(400).json({
       success: false,
-      message: "Fullname is required",
+      message: "Name is required",
     });
   }
 
@@ -27,6 +28,13 @@ const signup = asyncHandler(async (req, res) => {
     return res.status(400).json({
       success: false,
       message: "Invalid email",
+    });
+  }
+
+  if (!phone) {
+    return res.status(400).json({
+      success: false,
+      message: "Phone number is required",
     });
   }
 
@@ -53,26 +61,23 @@ const signup = asyncHandler(async (req, res) => {
     });
   }
 
-  // ---Generate OTP
   const otp = generateOTP();
 
-  //-------Save  database
   const user = await authSchema.create({
-    fullname,
+    name,
     email,
+    phone,
     password,
     otp,
-    otpExpires: new Date(Date.now() + 5 * 60 * 1000),
+    otpExpiry: new Date(Date.now() + 5 * 60 * 1000),
   });
 
-  // ---Send OTP to email
-  await mailSender({   
+  await mailSender({
     email,
-    subject: "OTP Verification",
+    subject: "Rent Nest - Email Verification OTP",
     otp,
   });
 
-  // ---Send response
   return res.status(201).json({
     success: true,
     message: "Signup successful. OTP has been sent to your email.",
