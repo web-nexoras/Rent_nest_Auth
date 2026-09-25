@@ -31,4 +31,4 @@ const deleteNotice = asyncHandler(async (req, res) => {
 
 module.exports = {
   deleteNotice
-}; 
+};      
