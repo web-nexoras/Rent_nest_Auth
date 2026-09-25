@@ -5,7 +5,7 @@ const emailTemp = ({ otp, resetLink }) => {
         <div style="max-width:550px;margin:auto;background:#fff;border-radius:20px;padding:40px;text-align:center">
 
           <h1 style="color:#4f46e5">
-            Damo Ecommerce
+            Rent_Nest team 
           </h1>
 
           <h2>Password Reset Request</h2>
@@ -44,7 +44,7 @@ const emailTemp = ({ otp, resetLink }) => {
       <div style="max-width:550px;margin:auto;background:white;border-radius:20px;padding:40px;text-align:center">
 
         <h1 style="color:#4f46e5">
-Student Management System
+Rent_Nest team 
         </h1>
 
         <h2>Your OTP</h2>

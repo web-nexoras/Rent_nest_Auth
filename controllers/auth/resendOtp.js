@@ -39,7 +39,7 @@ const resendOtp = asyncHandler(async (req, res) => {
 
   // Send OTP to email
   await mailSender({
-    email: normalizedEmail,
+    email,
     subject: "Rent Nest - OTP Verification",
     otp,
   });

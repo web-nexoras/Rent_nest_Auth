@@ -13,6 +13,8 @@
 7. `configs/dbConfig.js`-এর comment-এ database/email/cloud service-এর credential সরাসরি রাখা ছিল। সেগুলো সরানো হয়েছে। যদি এগুলো আগে commit বা share হয়ে থাকে, সংশ্লিষ্ট provider-এ credential rotate করতে হবে।
 8. Database connection failure log করে server চালু থাকে। বর্তমান update-এ আগের এই আচরণ রাখা হয়েছে।
 9. অজানা URL-এর জন্য JSON 404 response যোগ করা হয়েছে।
+10. Mongoose save hook-এ `next()` callback ব্যবহার করা হচ্ছিল। বর্তমান Mongoose-এ এটি `next is not a function` error দিচ্ছিল। Auth ও unit model-এর save hookগুলো callback-বিহীন sync/async hook-এ বদলানো হয়েছে।
+11. OTP resend controller-এ undefined `normalizedEmail` variable ছিল, যা resend request-এ 500 দিত। Signup, verify, resend-এ email lowercase/trim এবং verify-তে OTP string trim করা হয়েছে, যাতে input casing/number format-এর অমিল না হয়।
 
 ## কী কী পরিবর্তন করেছি
 

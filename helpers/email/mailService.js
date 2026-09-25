@@ -12,22 +12,17 @@ const transporter = nodemailer.createTransport({
 
 // Send Mail
 const mailSender = async ({ email, subject, otp, resetLink }) => {
-  try {
-    await transporter.sendMail({
-      from: '"Management Project Team" <team@example.com>',
-      to: email,
-      subject,
-      html: emailTemp({
-        otp,
-        resetLink,
-      }),
-    });
+  await transporter.sendMail({
+    from: `"Rent Nest" <${process.env.EMAIL_USER}>`,
+    to: email,
+    subject,
+    html: emailTemp({
+      otp,
+      resetLink,
+    }),
+  });
 
-    console.log("Email sent successfully");
-  } catch (err) {
-    console.error("Error while sending mail:", err);
-    throw err;
-  }
+  console.log(`Email sent successfully to ${email}`);
 };
 
 module.exports = {

@@ -5,6 +5,7 @@ const { asyncHandler } = require("../../middlewares/asyncHandler");
 const verifyOtp = asyncHandler(async (req, res) => {
   const { email, otp } = req.body;
 
+
   // -------- Validate input
   if (!email || !otp) {
     return res.status(400).json({
@@ -21,7 +22,7 @@ const verifyOtp = asyncHandler(async (req, res) => {
       otpExpiry: { $gt: new Date() },
       isVerified: false,
     })
-    .select("+otp +otpExpiry");
+   
 
   // -------- Invalid or expired OTP
   if (!user) {
@@ -42,6 +43,7 @@ const verifyOtp = asyncHandler(async (req, res) => {
   return res.status(200).json({
     success: true,
     message: "OTP verified successfully",
+    user
   });
 });
 

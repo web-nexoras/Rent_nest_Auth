@@ -49,9 +49,8 @@ const unitSchema = new mongoose.Schema(
 );
 
 // Keep status in sync with assignedTenant automatically
-unitSchema.pre("save", function (next) {
+unitSchema.pre("save", function () {
   this.status = this.assignedTenant ? "occupied" : "vacant";
-  next();
 });
 
 module.exports = mongoose.model("Unit", unitSchema);
