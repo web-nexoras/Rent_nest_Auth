@@ -3,6 +3,7 @@ const router = express.Router();
 
 const { createNotice } = require("../../controllers/notice/createNotice");
 
-router.get('/create-notice',  createNotice )
+router.post('/create-notice',  createNotice )
 
 module.exports = router
+ 

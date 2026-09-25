@@ -4,6 +4,6 @@ const router = express.Router();
 
 const { updateNotice } = require("../../controllers/notice/updateNotice");
 
-router.get('/create-notice', updateNotice)
+router.put('/update-notice/:id', updateNotice)
 
 module.exports = router
