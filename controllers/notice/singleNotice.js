@@ -1,4 +1,4 @@
-const noticeSchema = require("../../models/noticeSchema");
+const noticeSchema = require("../../models/noticeShcema");
 const { asyncHandler } = require("../../middlewares/asyncHandler");
 
 // -------- Get Single Notice Controller

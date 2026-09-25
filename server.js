@@ -6,11 +6,8 @@ const cookieParser = require("cookie-parser");
 const dbConfig = require("./configs/dbConfig");
 const { errorHandler } = require("./middlewares/errorHandler");
 
-const PORT = process.env.PORT || 8000;
-
-const dns = require("dns");
 const cors = require("cors");
-dns.setServers(["8.8.8.8", "8.8.4.4"]);
+const PORT = process.env.PORT || 8000;
 
 const app = express();
 
@@ -25,6 +22,9 @@ app.use(
 app.use(express.json());
 app.use(cookieParser());
 app.use(router);
+app.use((req, res) => {
+  res.status(404).json({ success: false, message: "Route not found" });
+});
 app.use(errorHandler);
 
 dbConfig();

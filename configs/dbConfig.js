@@ -12,14 +12,3 @@ const dbConfig = () => {
 };
 
 module.exports = dbConfig;
-
-// /api/v1
-// mongodb+srv://data_base:3wDDBqJpF4B8NAZW@cluster0.mjewgzf.mongodb.net/users?appName=Cluster0
-
-// mahirthecoder.bd@gmail.com
-// acggrmko tyze jshm
-
-// db21zycb0
-// 475217717918117
-// m4cCnshRQZYdfEX_sR_m7FJAedY
-

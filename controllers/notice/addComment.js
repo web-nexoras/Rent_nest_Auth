@@ -1,5 +1,5 @@
 const { asyncHandler } = require("../../middlewares/asyncHandler");
-const { noticeSchema } = require("../../models/noticeShcema");
+const noticeSchema = require("../../models/noticeShcema");
 
 // -------- Add Comment Controller
 const addComment = asyncHandler(async (req, res) => {

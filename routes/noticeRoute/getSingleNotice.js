@@ -3,6 +3,6 @@ const router = express.Router();
 
 const { getNotice } = require("../../controllers/notice/singleNotice");
 
-router.get('/single-notice',  getNotice )
+router.get('/single-notice/:id', getNotice);
 
 module.exports = router

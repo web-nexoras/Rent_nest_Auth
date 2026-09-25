@@ -8,20 +8,20 @@ const updateNotice  = require ('./updateNotice.js')
 const deleteNotice  = require ('./deleteNotice.js')
 const addComment  = require ('./addComment.js')
 const deleteComment = require ('./deleteComment.js')
-// const getProfile = require ('./getProfile.js')
-// const updateProfile = require ('./updateProfile.js')
 
 // ---------middleware 
 const { authMiddleware } = require("../../middlewares/authMiddleware.js");
+const { roleCheckMiddleware } = require("../../middlewares/roleCheckMiddleware.js");
 
 
-router.use("/notice", getallNotice );
-router.use("/notice", getNotice );
-router.use("/notice", createNotice );
-router.use("/notice", updateNotice );
-router.use("/notice", deleteNotice );
-router.use("/notice", addComment );
-router.use("/notice", deleteComment );
+router.use("/notice", authMiddleware);
+router.use("/notice", getallNotice);
+router.use("/notice", getNotice);
+router.use("/notice", roleCheckMiddleware("admin"), createNotice);
+router.use("/notice", roleCheckMiddleware("admin"), updateNotice);
+router.use("/notice", roleCheckMiddleware("admin"), deleteNotice);
+router.use("/notice", roleCheckMiddleware("tenant"), addComment);
+router.use("/notice", roleCheckMiddleware("tenant"), deleteComment);
 
 
 module.exports = router;
