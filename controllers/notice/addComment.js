@@ -37,5 +37,5 @@ const addComment = asyncHandler(async (req, res) => {
 });
 
 module.exports = {
-  addComment,
+  addComment
 };

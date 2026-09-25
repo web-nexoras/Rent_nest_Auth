@@ -3,6 +3,6 @@ const router = express.Router();
 
 const { addComment } = require("../../controllers/notice/addComment");
 
-router.get('/comment-add',  addComment )
+router.post('/comment-add/:id',  addComment )
 
 module.exports = router

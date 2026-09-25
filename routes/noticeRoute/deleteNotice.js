@@ -3,6 +3,6 @@ const router = express.Router();
 
 const { deleteNotice } = require("../../controllers/notice/deleteNotice");
 
-router.post('/del-notice/:id',  deleteNotice  )
+router.delete("/del-notice/:id", deleteNotice);
 
-module.exports = router
+module.exports = router;
