@@ -1,6 +1,7 @@
 const jwt = require("jsonwebtoken");
+const authSchema = require("../models/authSchema");
 
-const authMiddleware = (req, res, next) => {
+const authMiddleware = async (req, res, next) => {
   try {
     const accTkn = req.cookies?.accTkn;
 
@@ -17,7 +18,16 @@ const authMiddleware = (req, res, next) => {
 
     const decoded = jwt.verify(accTkn, process.env.JWT_SEC);
 
-    req.user = decoded;
+    const user = await authSchema.findById(decoded.id).select("-password");
+
+    if (!user) {
+      return res.status(401).json({
+        success: false,
+        message: "User not found, token invalid",
+      });
+    }
+
+    req.user = user;
 
     next();
   } catch (error) {
@@ -25,9 +35,9 @@ const authMiddleware = (req, res, next) => {
       success: false,
       message: "Unauthorized or token expired",
     });
-  }    
+  }
 };
 
 module.exports = {
-  authMiddleware
+  authMiddleware,
 };

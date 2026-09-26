@@ -16,7 +16,7 @@ const authSchema = new mongoose.Schema(
       required: [true, "Email is required"],
       unique: true,
       lowercase: true,
-      trim: true,
+      trim: true
     },
 
     phone: {
@@ -53,7 +53,6 @@ const authSchema = new mongoose.Schema(
       type: String,
       enum: ["admin", "tenant"],
       default: "tenant",
-      
     },
 
     approvalStatus: {
@@ -112,21 +111,26 @@ const authSchema = new mongoose.Schema(
   },
   {
     timestamps: true,
-  },
+  }
 );
 
-
+// ---------------- Admins are auto-approved on creation
+authSchema.pre("save", function (next) {
+  if (this.role === "admin") {
+    this.approvalStatus = "approved";
+  }
+  next();
+});
 
 // ---------------- Hash password before saving
-authSchema.pre("save", async function () {
+authSchema.pre("save", async function (next) {
   if (!this.isModified("password")) {
-    return;
+    return next();
   }
 
   const salt = await bcrypt.genSalt(10);
-
   this.password = await bcrypt.hash(this.password, salt);
-
+  next();
 });
 
 // ---------------- Compare password
