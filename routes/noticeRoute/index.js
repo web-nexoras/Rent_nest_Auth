@@ -15,7 +15,7 @@ const { checkActive } = require("../../middlewares/checkActive.js");
 
 
 
-router.use( authMiddleware, checkActive)
+router.use("/notice", authMiddleware, checkActive)
 router.use("/notice", getallNotice);
 router.use("/notice", getNotice);
 router.use("/notice", createNotice);

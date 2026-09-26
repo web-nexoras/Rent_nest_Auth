@@ -22,9 +22,7 @@ app.use(
 app.use(express.json());
 app.use(cookieParser());
 app.use(router);
-app.use((req, res) => {
-  res.status(404).json({ success: false, message: "Route not found" });
-});
+
 app.use(errorHandler);
 
 dbConfig();

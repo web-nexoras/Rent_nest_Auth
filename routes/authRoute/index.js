@@ -9,7 +9,8 @@ const forget = require ('./forgetPass.js')
 const resetPass = require ('./restetPass.js')
 const logOut = require ('./logOut.js')
 const getProfile = require ('./getProfile.js')
-const updateProfile = require ('./updateProfile.js')
+const updateProfile = require ('./updateProfile.js');
+
 
 router.use("/auth", Signup);
 router.use("/auth", VerifyOtp);

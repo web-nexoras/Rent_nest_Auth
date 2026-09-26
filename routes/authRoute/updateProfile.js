@@ -6,6 +6,6 @@ const upload = multer();
 const { authMiddleware } = require("../../middlewares/authMiddleware");
 const { updateProfile } = require("../../controllers/auth/updateProfile");
 
-router.put("/update-profile", authMiddleware, upload.single("avatar"), updateProfile);
+router.put("/update-profile", authMiddleware, upload.single("profileImage"), updateProfile);
 
 module.exports = router;

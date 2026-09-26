@@ -115,23 +115,24 @@ const authSchema = new mongoose.Schema(
 );
 
 // ---------------- Admins are auto-approved on creation
-authSchema.pre("save", function (next) {
+// Sync function — keep next(next) style
+authSchema.pre("save", function () {
   if (this.role === "admin") {
     this.approvalStatus = "approved";
   }
-  next();
+  
 });
-
+ 
 // ---------------- Hash password before saving
-authSchema.pre("save", async function (next) {
+authSchema.pre("save", async function () {
   if (!this.isModified("password")) {
-    return next();
+    return;
   }
-
+ 
   const salt = await bcrypt.genSalt(10);
   this.password = await bcrypt.hash(this.password, salt);
-  next();
 });
+ 
 
 // ---------------- Compare password
 authSchema.methods.matchPassword = async function (enteredPassword) {

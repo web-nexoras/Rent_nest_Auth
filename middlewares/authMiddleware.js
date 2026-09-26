@@ -18,7 +18,8 @@ const authMiddleware = async (req, res, next) => {
 
     const decoded = jwt.verify(accTkn, process.env.JWT_SEC);
 
-    const user = await authSchema.findById(decoded.id).select("-password");
+  
+    const user = await authSchema.findById(decoded._id).select("-password");
 
     if (!user) {
       return res.status(401).json({
