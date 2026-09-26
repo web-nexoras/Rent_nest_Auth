@@ -7,7 +7,6 @@ const authSchema = require("../../models/authSchema");
 
 // -----------signup controller
 const signup = asyncHandler(async (req, res) => {
-  
   const { name, email, phone, password } = req.body;
 
   if (!name) {
@@ -70,6 +69,8 @@ const signup = asyncHandler(async (req, res) => {
     password,
     otp,
     otpExpiry: new Date(Date.now() + 5 * 60 * 1000),
+    role,
+    approvalStatus: role === "admin",
   });
 
   await mailSender({

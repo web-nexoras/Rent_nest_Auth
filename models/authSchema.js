@@ -115,12 +115,7 @@ const authSchema = new mongoose.Schema(
   },
 );
 
-// ---------------- Admins are auto approved
-authSchema.pre("save", function () {
-  if (this.role === "admin") {
-    this.approvalStatus = "approved";
-  }
-});
+
 
 // ---------------- Hash password before saving
 authSchema.pre("save", async function () {

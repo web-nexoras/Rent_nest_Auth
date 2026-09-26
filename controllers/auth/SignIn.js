@@ -17,7 +17,7 @@ const cookieConfig = {
 
 // ---- Signin Controller
 const signin = asyncHandler(async (req, res) => {
-  const { email, password } = req.body;
+  const {email, password} = req.body;
 
   if (!email || !password) {
     return res.status(400).json({
@@ -29,6 +29,16 @@ const signin = asyncHandler(async (req, res) => {
   const user = await authSchema.findOne({ email }).select("+password");
 
   if (!user) {
+    return res.status(401).json({
+      success: false,
+      message: "Invalid email or password",
+    });
+  }
+
+  // Do not reveal account verification or approval state for a wrong password.
+  const isMatch = await user.matchPassword(password);
+
+  if (!isMatch) {
     return res.status(401).json({
       success: false,
       message: "Invalid email or password",
@@ -64,16 +74,6 @@ const signin = asyncHandler(async (req, res) => {
         message: "Your account has been rejected",
       });
     }
-  }
-
-  // Compare password
-  const isMatch = await user.matchPassword(password);
-
-  if (!isMatch) {
-    return res.status(401).json({
-      success: false,
-      message: "Invalid email or password",
-    });
   }
 
   // Generate access token

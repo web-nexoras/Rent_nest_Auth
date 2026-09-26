@@ -15,6 +15,8 @@
 9. অজানা URL-এর জন্য JSON 404 response যোগ করা হয়েছে।
 10. Mongoose save hook-এ `next()` callback ব্যবহার করা হচ্ছিল। বর্তমান Mongoose-এ এটি `next is not a function` error দিচ্ছিল। Auth ও unit model-এর save hookগুলো callback-বিহীন sync/async hook-এ বদলানো হয়েছে।
 11. OTP resend controller-এ undefined `normalizedEmail` variable ছিল, যা resend request-এ 500 দিত। Signup, verify, resend-এ email lowercase/trim এবং verify-তে OTP string trim করা হয়েছে, যাতে input casing/number format-এর অমিল না হয়।
+12. Signin email trim/lowercase করা হয়েছে, এবং password সঠিক হওয়ার আগে approval/verification state আর প্রকাশ হয় না। Public signup থেকে admin role নেওয়া হয় না; admin provision করার জন্য `scripts/provisionAdmin.js` যোগ করা হয়েছে। `.env`-এ `ADMIN_EMAIL`, `ADMIN_PASSWORD`, `ADMIN_NAME`, `ADMIN_PHONE` সেট করে `node scripts/provisionAdmin.js` চালালে ওই email-এর account admin/approved হিসেবে তৈরি বা আপডেট হবে।
+13. Signup এখন `role` গ্রহণ করে: role না পাঠালে tenant, আর admin role-এর জন্য `.env`-এ `ADMIN_SIGNUP_SECRET` এবং request-এর `adminSignupSecret` মিলতে হবে। ফলে role বাছাই করা যায়, কিন্তু secret ছাড়া signup দিয়ে নিজেকে admin বানানো যায় না।
 
 ## কী কী পরিবর্তন করেছি
 
