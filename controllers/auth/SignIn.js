@@ -7,17 +7,27 @@ const {
   generateRefreshToken,
 } = require("../../helpers/auth/authUtils");
 
-// Cookie Configuration
-const cookieConfig = {
+// Base cookie config 
+const baseCookieConfig = {
   httpOnly: true,
   secure: process.env.NODE_ENV === "production",
   sameSite: "strict",
-  maxAge: 7 * 24 * 60 * 60 * 1000,
+};
+
+const accessCookieConfig = {
+  ...baseCookieConfig,
+  maxAge: 15 * 60 * 1000, 
+};
+
+// Refresh token cookie — longer-lived
+const refreshCookieConfig = {
+  ...baseCookieConfig,
+  maxAge: 7 * 24 * 60 * 60 * 1000, 
 };
 
 // ---- Signin Controller
 const signin = asyncHandler(async (req, res) => {
-  const {email, password} = req.body;
+  const { email, password } = req.body;
 
   if (!email || !password) {
     return res.status(400).json({
@@ -26,7 +36,9 @@ const signin = asyncHandler(async (req, res) => {
     });
   }
 
-  const user = await authSchema.findOne({ email }).select("+password");
+  const user = await authSchema
+    .findOne({ email: email.toLowerCase() })
+    .select("+password");
 
   if (!user) {
     return res.status(401).json({
@@ -35,7 +47,6 @@ const signin = asyncHandler(async (req, res) => {
     });
   }
 
-  // Do not reveal account verification or approval state for a wrong password.
   const isMatch = await user.matchPassword(password);
 
   if (!isMatch) {
@@ -84,8 +95,8 @@ const signin = asyncHandler(async (req, res) => {
 
   return res
     .status(200)
-    .cookie("accTkn", accessToken, cookieConfig)
-    .cookie("refTkn", refreshToken, cookieConfig)
+    .cookie("accTkn", accessToken, accessCookieConfig)
+    .cookie("refTkn", refreshToken, refreshCookieConfig)
     .json({
       success: true,
       message: "Signin successful",

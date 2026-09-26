@@ -51,7 +51,7 @@ const signup = asyncHandler(async (req, res) => {
     });
   }
 
-  const existingUser = await authSchema.findOne({ email });
+  const existingUser = await authSchema.findOne({ email: email.toLowerCase() });
 
   if (existingUser) {
     return res.status(409).json({
@@ -69,15 +69,17 @@ const signup = asyncHandler(async (req, res) => {
     password,
     otp,
     otpExpiry: new Date(Date.now() + 5 * 60 * 1000),
-    role,
-    approvalStatus: role === "admin",
   });
 
-  await mailSender({
-    email,
-    subject: "Rent Nest - Email Verification OTP",
-    otp,
-  });
+  try {
+    await mailSender({
+      email,
+      subject: "Rent Nest - Email Verification OTP",
+      otp,
+    });
+  } catch (mailError) {
+    console.error("Signup OTP email failed:", mailError);
+  }
 
   return res.status(201).json({
     success: true,

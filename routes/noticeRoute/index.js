@@ -7,14 +7,15 @@ const createNotice = require ('./createNotice.js')
 const updateNotice  = require ('./updateNotice.js')
 const deleteNotice  = require ('./deleteNotice.js')
 const addComment  = require ('./addComment.js')
-const deleteComment = require ('./deleteComment.js')
+const deleteComment = require ('./deleteComment.js');
 
-// ---------middleware 
+// --------middlewere 
 const { authMiddleware } = require("../../middlewares/authMiddleware.js");
-// const { roleCheckMiddleware } = require("../../middlewares/roleCheckMiddleware.js");
+const { checkActive } = require("../../middlewares/checkActive.js");
 
 
-router.use("/notice", authMiddleware);
+
+router.use( authMiddleware, checkActive)
 router.use("/notice", getallNotice);
 router.use("/notice", getNotice);
 router.use("/notice", createNotice);
