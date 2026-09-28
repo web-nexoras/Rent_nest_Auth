@@ -21,4 +21,4 @@ const getSingleUnit = asyncHandler(async (req, res) => {
   });
 });
 
-module.exports = {getSingleUnit};
+module.exports = { getSingleUnit };
