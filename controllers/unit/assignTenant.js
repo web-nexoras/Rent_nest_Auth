@@ -86,4 +86,4 @@ const assignTenant = asyncHandler(async (req, res) => {
   });
 });
 
-module.exports = assignTenant;
+module.exports = { assignTenant };

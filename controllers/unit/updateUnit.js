@@ -79,4 +79,4 @@ const updateUnit = asyncHandler(async (req, res) => {
   });
 });
 
-module.exports = updateUnit;
+module.exports = { updateUnit };

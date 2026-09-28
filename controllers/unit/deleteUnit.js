@@ -28,4 +28,4 @@ const deleteUnit = asyncHandler(async (req, res) => {
   });
 });
 
-module.exports = deleteUnit;
+module.exports = { deleteUnit };

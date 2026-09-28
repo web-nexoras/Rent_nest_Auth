@@ -27,7 +27,7 @@ const createUnit = asyncHandler(async (req, res) => {
   }
 
   const existingUnit = await unitSchema.findOne({
-    unitNumber
+    unitNumber,
   });
 
   if (existingUnit) {
@@ -44,7 +44,7 @@ const createUnit = asyncHandler(async (req, res) => {
     bedrooms,
     rentAmount,
     description,
-    images
+    images,
   });
 
   return res.status(201).json({
@@ -54,4 +54,4 @@ const createUnit = asyncHandler(async (req, res) => {
   });
 });
 
-module.exports = createUnit;
+module.exports = { createUnit };
