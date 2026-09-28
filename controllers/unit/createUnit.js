@@ -1,9 +1,5 @@
-
 const { asyncHandler } = require("../../middlewares/asyncHandler");
 const unitSchema = require("../../models/unitSchema");
-
-const isNonNegativeNumber = (value) =>
-  typeof value === "number" && Number.isFinite(value) && value >= 0;
 
 const createUnit = asyncHandler(async (req, res) => {
   const {
@@ -16,7 +12,7 @@ const createUnit = asyncHandler(async (req, res) => {
     images,
   } = req.body;
 
-  if (!unitNumber || typeof unitNumber !== "string" || !unitNumber.trim()) {
+  if (!unitNumber || !unitNumber.trim()) {
     return res.status(400).json({
       success: false,
       message: "Unit number is required",
@@ -30,42 +26,8 @@ const createUnit = asyncHandler(async (req, res) => {
     });
   }
 
-  if (!isNonNegativeNumber(rentAmount) || rentAmount === 0) {
-    return res.status(400).json({
-      success: false,
-      message: "Rent amount must be a number greater than 0",
-    });
-  }
-
-  if (sizeSqft !== undefined && !isNonNegativeNumber(sizeSqft)) {
-    return res.status(400).json({
-      success: false,
-      message: "Size must be a non-negative number",
-    });
-  }
-
-  if (bedrooms !== undefined && !isNonNegativeNumber(bedrooms)) {
-    return res.status(400).json({
-      success: false,
-      message: "Bedrooms must be a non-negative number",
-    });
-  }
-
-  if (
-    images !== undefined &&
-    (!Array.isArray(images) || !images.every((img) => typeof img === "string"))
-  ) {
-    return res.status(400).json({
-      success: false,
-      message: "Images must be an array of URLs",
-    });
-  }
-
-  // Normalize so "a-203" and "A-203" can't both exist
-  const normalizedUnitNumber = unitNumber.trim().toUpperCase();
-
   const existingUnit = await unitSchema.findOne({
-    unitNumber: normalizedUnitNumber,
+    unitNumber
   });
 
   if (existingUnit) {
@@ -75,15 +37,14 @@ const createUnit = asyncHandler(async (req, res) => {
     });
   }
 
-  // status & assignedTenant are intentionally NOT accepted from the client
   const unit = await unitSchema.create({
-    unitNumber: normalizedUnitNumber,
+    unitNumber,
     floor,
     sizeSqft,
     bedrooms,
     rentAmount,
     description,
-    images,
+    images
   });
 
   return res.status(201).json({
@@ -93,4 +54,4 @@ const createUnit = asyncHandler(async (req, res) => {
   });
 });
 
-module.exports = { createUnit };
+module.exports = createUnit;
