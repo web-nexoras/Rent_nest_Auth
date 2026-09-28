@@ -12,7 +12,7 @@ const createUnit = asyncHandler(async (req, res) => {
     images,
   } = req.body;
 
-  if (!unitNumber || !unitNumber.trim()) {
+  if (typeof unitNumber !== "string" || !unitNumber.trim()) {
     return res.status(400).json({
       success: false,
       message: "Unit number is required",
@@ -26,8 +26,9 @@ const createUnit = asyncHandler(async (req, res) => {
     });
   }
 
+  const normalizedUnitNumber = unitNumber.trim();
   const existingUnit = await unitSchema.findOne({
-    unitNumber,
+    unitNumber: normalizedUnitNumber,
   });
 
   if (existingUnit) {
@@ -38,7 +39,7 @@ const createUnit = asyncHandler(async (req, res) => {
   }
 
   const unit = await unitSchema.create({
-    unitNumber,
+    unitNumber: normalizedUnitNumber,
     floor,
     sizeSqft,
     bedrooms,

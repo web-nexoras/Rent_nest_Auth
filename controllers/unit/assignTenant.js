@@ -1,10 +1,18 @@
 const { asyncHandler } = require("../../middlewares/asyncHandler");
 const unitSchema = require("../../models/unitSchema");
 const authSchema = require("../../models/authSchema");
+const mongoose = require("mongoose");
 
 const assignTenant = asyncHandler(async (req, res) => {
   const { id } = req.params;
   const { tenantId } = req.body;
+
+  if (!mongoose.isValidObjectId(id) || !mongoose.isValidObjectId(tenantId)) {
+    return res.status(400).json({
+      success: false,
+      message: "A valid unit ID and tenant ID are required",
+    });
+  }
 
   if (!tenantId) {
     return res.status(400).json({
