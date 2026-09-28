@@ -7,7 +7,6 @@ const {
   generateRefreshToken,
 } = require("../../helpers/auth/authUtils");
 
-// Base cookie config 
 const baseCookieConfig = {
   httpOnly: true,
   secure: process.env.NODE_ENV === "production",
@@ -19,7 +18,6 @@ const accessCookieConfig = {
   maxAge: 15 * 60 * 1000, 
 };
 
-// Refresh token cookie — longer-lived
 const refreshCookieConfig = {
   ...baseCookieConfig,
   maxAge: 7 * 24 * 60 * 60 * 1000, 

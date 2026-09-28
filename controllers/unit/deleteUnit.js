@@ -1,12 +1,15 @@
-const { asyncHandler } = require("../../middlewares/asyncHandler");
-const unitSchema = require("../../models/unitSchema");
 const mongoose = require("mongoose");
+const unitSchema = require("../../models/unitSchema");
+const { asyncHandler } = require("../../middlewares/asyncHandler");
 
 const deleteUnit = asyncHandler(async (req, res) => {
   const { id } = req.params;
 
   if (!mongoose.isValidObjectId(id)) {
-    return res.status(400).json({ success: false, message: "Invalid unit ID" });
+    return res.status(400).json({
+      success: false,
+      message: "Invalid unit ID",
+    });
   }
 
   const unit = await unitSchema.findById(id);
@@ -18,10 +21,10 @@ const deleteUnit = asyncHandler(async (req, res) => {
     });
   }
 
-  if (unit.assignedTenant) {
+  if (unit.assignedTenant || unit.status === "occupied") {
     return res.status(400).json({
       success: false,
-      message: "Cannot delete an occupied unit",
+      message: "Cannot delete an occupied unit. Remove the tenant first.",
     });
   }
 

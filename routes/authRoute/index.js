@@ -1,25 +1,8 @@
 const express = require("express");
 const router = express.Router();
 
-const Signup = require ('./signUp.js')
-const VerifyOtp = require ('./verifyOtp.js')
-const resendOtp = require ('./resendOtp.js')
-const Signin = require ('./signIn.js')
-const forget = require ('./forgetPass.js')
-const resetPass = require ('./restetPass.js')
-const logOut = require ('./logOut.js')
-const getProfile = require ('./getProfile.js')
-const updateProfile = require ('./updateProfile.js');
+const allRoutes = require("./authAllRoutes.js");
 
-
-router.use("/auth", Signup);
-router.use("/auth", VerifyOtp);
-router.use("/auth", resendOtp);
-router.use("/auth", Signin);
-router.use("/auth", forget);
-router.use("/auth", resetPass);
-router.use("/auth", logOut);
-router.use("/auth", getProfile);
-router.use("/auth", updateProfile);
+router.use("/auth", allRoutes);
 
 module.exports = router;
