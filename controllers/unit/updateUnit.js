@@ -1,12 +1,25 @@
 const unitSchema = require("../../models/unitSchema");
 const mongoose = require("mongoose");
+
 const { asyncHandler } = require("../../middlewares/asyncHandler");
+
+const {
+  uploadCloudinary,
+  destroyFromCloudinary,
+} = require("../../helpers/cloudinary/cloudinaryUtils");
+
+// -------- Update Unit Controller
 
 const updateUnit = asyncHandler(async (req, res) => {
   const { id } = req.params;
 
+  // ---------- Validate Unit ID
+
   if (!mongoose.isValidObjectId(id)) {
-    return res.status(400).json({ success: false, message: "Invalid unit ID" });
+    return res.status(400).json({
+      success: false,
+      message: "Invalid unit ID",
+    });
   }
 
   const {
@@ -16,8 +29,11 @@ const updateUnit = asyncHandler(async (req, res) => {
     bedrooms,
     rentAmount,
     description,
-    images,
   } = req.body;
+
+  const images = req.files;
+
+  // ---------- Find Unit
 
   const unit = await unitSchema.findById(id);
 
@@ -28,8 +44,13 @@ const updateUnit = asyncHandler(async (req, res) => {
     });
   }
 
+  // ---------- Unit Number
+
   if (unitNumber !== undefined) {
-    if (typeof unitNumber !== "string" || !unitNumber.trim()) {
+    if (
+      typeof unitNumber !== "string" ||
+      !unitNumber.trim()
+    ) {
       return res.status(400).json({
         success: false,
         message: "Unit number cannot be empty",
@@ -51,29 +72,68 @@ const updateUnit = asyncHandler(async (req, res) => {
     unit.unitNumber = unitNumber.trim();
   }
 
+  // ---------- Floor
+
   if (floor !== undefined) {
     unit.floor = floor;
   }
+
+  // ---------- Size
 
   if (sizeSqft !== undefined) {
     unit.sizeSqft = sizeSqft;
   }
 
+  // ---------- Bedrooms
+
   if (bedrooms !== undefined) {
     unit.bedrooms = bedrooms;
   }
+
+  // ---------- Rent
 
   if (rentAmount !== undefined) {
     unit.rentAmount = rentAmount;
   }
 
+  // ---------- Description
+
   if (description !== undefined) {
     unit.description = description;
   }
 
-  if (images !== undefined) {
-    unit.images = images;
+  // ---------- Update Images
+
+  if (images?.length) {
+    const newImageUrls = [];
+
+    for (const image of images) {
+      const imageUrl = await uploadCloudinary({
+        mimetype: image.mimetype,
+        imgBuffer: image.buffer,
+      });
+
+      newImageUrls.push(imageUrl);
+    }
+
+    // Delete old images from Cloudinary
+
+    if (unit.images?.length) {
+      for (const oldImage of unit.images) {
+        try {
+          await destroyFromCloudinary(oldImage);
+        } catch (error) {
+          console.error("Old unit image delete error:", error);
+        }
+      }
+    }
+
+    // Replace old images with new images
+
+    unit.images = newImageUrls;
   }
+
+  // ---------- Save
 
   await unit.save();
 
@@ -84,4 +144,6 @@ const updateUnit = asyncHandler(async (req, res) => {
   });
 });
 
-module.exports = { updateUnit };
+module.exports = {
+  updateUnit,
+};

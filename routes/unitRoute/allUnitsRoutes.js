@@ -20,7 +20,7 @@ router.post("/create", adminOnly,upload.array("images", 3),createUnit,);
 router.get("/all-unit", adminOnly, getAllUnits);
 router.get("/single-unit/:id", requireApproved, getSingleUnit);
 router.delete("/del-unit/:id", adminOnly, deleteUnit);
-router.patch("/update-unit/:id", adminOnly, updateUnit);
+router.patch("/update-unit/:id", adminOnly, upload.array("images", 3), updateUnit);
 router.patch("/assign-tenant/:id", adminOnly, assignTenant);
 router.patch("/unassign-tenant/:id", adminOnly, unassignTenant);
 
