@@ -1,5 +1,10 @@
-const { asyncHandler } = require("../../middlewares/asyncHandler");
 const unitSchema = require("../../models/unitSchema");
+
+const { asyncHandler } = require("../../middlewares/asyncHandler");
+
+const { uploadCloudinary } = require("../../helpers/cloudinary/cloudinaryUtils");
+
+// -------- Create Unit Controller
 
 const createUnit = asyncHandler(async (req, res) => {
   const {
@@ -9,10 +14,13 @@ const createUnit = asyncHandler(async (req, res) => {
     bedrooms,
     rentAmount,
     description,
-    images,
   } = req.body;
 
-  if (typeof unitNumber !== "string" || !unitNumber.trim()) {
+  const images = req.files;
+console.log("FILES:", req.files);
+  // ---------- Validation
+
+  if (!unitNumber || !unitNumber.trim()) {
     return res.status(400).json({
       success: false,
       message: "Unit number is required",
@@ -26,9 +34,10 @@ const createUnit = asyncHandler(async (req, res) => {
     });
   }
 
-  const normalizedUnitNumber = unitNumber.trim();
+  // ---------- Check Duplicate Unit
+
   const existingUnit = await unitSchema.findOne({
-    unitNumber: normalizedUnitNumber,
+    unitNumber: unitNumber.trim(),
   });
 
   if (existingUnit) {
@@ -38,14 +47,29 @@ const createUnit = asyncHandler(async (req, res) => {
     });
   }
 
+  // ---------- Upload Images
+  const imageUrls = [];
+
+  if (images?.length) {
+    for (const image of images) {
+      const imageUrl = await uploadCloudinary({
+        mimetype: image.mimetype,
+        imgBuffer: image.buffer,
+      });
+
+      imageUrls.push(imageUrl);
+    }
+  }
+
+  // ---------- Create Unit
   const unit = await unitSchema.create({
-    unitNumber: normalizedUnitNumber,
+    unitNumber,
     floor,
     sizeSqft,
     bedrooms,
     rentAmount,
     description,
-    images,
+    images: imageUrls,
   });
 
   return res.status(201).json({
@@ -55,4 +79,6 @@ const createUnit = asyncHandler(async (req, res) => {
   });
 });
 
-module.exports = { createUnit };
+module.exports = {
+  createUnit,
+};

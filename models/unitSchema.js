@@ -42,10 +42,11 @@ const unitSchema = new mongoose.Schema(
     images: [
       {
         type: String,
+        trim: true,
       },
     ],
   },
-  { timestamps: true }
+  { timestamps: true },
 );
 
 // Keep status in sync with assignedTenant automatically

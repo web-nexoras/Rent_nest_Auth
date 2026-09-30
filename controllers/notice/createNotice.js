@@ -33,5 +33,5 @@ const createNotice = asyncHandler(async (req, res) => {
 });
 
 module.exports = {
-  createNotice,
+  createNotice
 };

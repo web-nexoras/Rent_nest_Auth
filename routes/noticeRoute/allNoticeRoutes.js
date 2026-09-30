@@ -1,7 +1,7 @@
 const express = require("express");
 const router = express.Router();
 
-// ----------controllerss 
+// ----------controllerss
 const { createNotice } = require("../../controllers/notice/createNotice");
 const { getAllNotices } = require("../../controllers/notice/getAllNotices");
 const { getNotice } = require("../../controllers/notice/singleNotice");
@@ -14,12 +14,12 @@ const { deleteComment } = require("../../controllers/notice/deleteComment");
 const { adminOnly } = require("../../middlewares/adminOnly");
 const { requireApproved } = require("../../middlewares/requireApproved");
 
-router.post("/create-notice", adminOnly, createNotice);
-router.get("/getall-notice", getAllNotices);
-router.get("/single-notice/:id", getNotice);
-router.delete("/del-notice/:id", adminOnly, deleteNotice);
-router.patch("/update-notice/:id", adminOnly, updateNotice);
-router.post("/comment-add/:id", requireApproved, addComment);
+router.post("/create", adminOnly, createNotice);
+router.get("/getall", getAllNotices);
+router.get("/single/:id", getNotice);
+router.delete("/del/:id", adminOnly, deleteNotice);
+router.patch("/update/:id", adminOnly, updateNotice);
+router.post("/comment/:id", requireApproved, addComment);
 router.delete("/del-comment/:id/:commentId", deleteComment);
 
 module.exports = router;
