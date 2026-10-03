@@ -46,5 +46,5 @@ const updateMaintenanceStatus = asyncHandler(async (req, res) => {
 });
 
 module.exports = {
-  updateMaintenanceStatus,
+  updateMaintenanceStatus
 };
