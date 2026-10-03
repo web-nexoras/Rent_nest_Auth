@@ -15,8 +15,8 @@ const { getAllMaintenance } = require("../../controllers/maintenance/getAllMaint
 const { getSingleMaintenance } = require("../../controllers/maintenance/getSingleMaintenance");
 
 router.post("/create", upload.array("images", 3), createMaintenance);
-router.get("/get-my-req", getMyMaintenance);
-// router.get("/getall", getAllMaintenance);
+router.get("/getmy", getMyMaintenance);
+router.get("/getall", getAllMaintenance);
 // router.get("/single/:id", getSingleMaintenance);
 // router.delete("/del/:id", adminOnly, deleteNotice);
 // router.patch("/update/:id", adminOnly, updateNotice);
