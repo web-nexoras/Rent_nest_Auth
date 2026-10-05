@@ -17,9 +17,8 @@ const createUnit = asyncHandler(async (req, res) => {
   } = req.body;
 
   const images = req.files;
-console.log("FILES:", req.files);
-  // ---------- Validation
 
+  // ---------- Validation
   if (!unitNumber || !unitNumber.trim()) {
     return res.status(400).json({
       success: false,
