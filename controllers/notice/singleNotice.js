@@ -1,9 +1,17 @@
 const noticeSchema = require("../../models/noticeShcema");
 const { asyncHandler } = require("../../middlewares/asyncHandler");
+const mongoose = require("mongoose");
 
 // -------- Get Single Notice Controller
 const getNotice = asyncHandler(async (req, res) => {
   const { id } = req.params;
+
+  if (!mongoose.isValidObjectId(id)) {
+    return res.status(400).json({
+      success: false,
+      message: "Invalid notice ID",
+    });
+  }
 
   const notice = await noticeSchema
     .findById(id)

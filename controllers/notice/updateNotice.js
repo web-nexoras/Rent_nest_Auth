@@ -1,10 +1,10 @@
 const mongoose = require("mongoose");
-const noticeSchema = require("../../models/noticeSchema");
+const noticeSchema = require("../../models/noticeShcema");
 const { asyncHandler } = require("../../middlewares/asyncHandler");
 
 const updateNotice = asyncHandler(async (req, res) => {
   const { id } = req.params;
-  const { title, description } = req.body;
+  const { title, description } = req.body || {};
 
   if (!mongoose.isValidObjectId(id)) {
     return res.status(400).json({
@@ -23,7 +23,7 @@ const updateNotice = asyncHandler(async (req, res) => {
   }
 
   if (title !== undefined) {
-    if (!title.trim()) {
+    if (typeof title !== "string" || !title.trim()) {
       return res.status(400).json({
         success: false,
         message: "Title cannot be empty",
@@ -33,7 +33,7 @@ const updateNotice = asyncHandler(async (req, res) => {
   }
 
   if (description !== undefined) {
-    if (!description.trim()) {
+    if (typeof description !== "string" || !description.trim()) {
       return res.status(400).json({
         success: false,
         message: "Description cannot be empty",

@@ -1,6 +1,6 @@
 const mongoose = require("mongoose");
 const { asyncHandler } = require("../../middlewares/asyncHandler");
-const noticeSchema = require("../../models/noticeSchema");
+const noticeSchema = require("../../models/noticeShcema");
 
 // Permission: admin can delete any comment, tenant can delete only their own
 const deleteComment = asyncHandler(async (req, res) => {

@@ -1,5 +1,5 @@
 const mongoose = require("mongoose");
-const noticeSchema = require("../../models/noticeSchema");
+const noticeSchema = require("../../models/noticeShcema");
 const { asyncHandler } = require("../../middlewares/asyncHandler");
 
 const deleteNotice = asyncHandler(async (req, res) => {
@@ -30,5 +30,5 @@ const deleteNotice = asyncHandler(async (req, res) => {
 });
 
 module.exports = {
-  deleteNotice,
+  deleteNotice
 };

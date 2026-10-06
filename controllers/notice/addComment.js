@@ -1,15 +1,23 @@
 const { asyncHandler } = require("../../middlewares/asyncHandler");
 const noticeSchema = require("../../models/noticeShcema");
+const mongoose = require("mongoose");
 
 // -------- Add Comment Controller
 const addComment = asyncHandler(async (req, res) => {
   const { id } = req.params;
-  const { text } = req.body;
+  const { text } = req.body || {};
 
-  if (!text) {
+  if (typeof text !== "string" || !text.trim()) {
     return res.status(400).json({
       success: false,
       message: "Comment text is required",
+    });
+  }
+
+  if (!mongoose.isValidObjectId(id)) {
+    return res.status(400).json({
+      success: false,
+      message: "Invalid notice ID",
     });
   }
 

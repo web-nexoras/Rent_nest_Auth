@@ -1,13 +1,11 @@
 const express = require("express");
 const router = express.Router();
 
-const allnotices = require("./allNoticeRoutes.js");
+const noticeRoutes = require("./allNoticeRoutes");
+const { authMiddleware } = require("../../middlewares/authMiddleware");
+const { checkActive } = require("../../middlewares/checkActive");
 
-// --------middlewere
-const { authMiddleware } = require("../../middlewares/authMiddleware.js");
-const { checkActive } = require("../../middlewares/checkActive.js");
-
-router.use("/notice", authMiddleware, checkActive);
-router.use("/notice", allnotices);
+// All notice endpoints require an authenticated, active account.
+router.use("/notice", authMiddleware, checkActive, noticeRoutes);
 
 module.exports = router;

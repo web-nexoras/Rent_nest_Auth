@@ -3,16 +3,16 @@ const { asyncHandler } = require("../../middlewares/asyncHandler");
 
 // -------- Create Notice Controller
 const createNotice = asyncHandler(async (req, res) => {
-  const { title, description } = req.body;
+  const { title, description } = req.body || {};
 
-  if (!title) {
+  if (typeof title !== "string" || !title.trim()) {
     return res.status(400).json({
       success: false,
       message: "Title is required",
     });
   }
 
-  if (!description) {
+  if (typeof description !== "string" || !description.trim()) {
     return res.status(400).json({
       success: false,
       message: "Description is required",
