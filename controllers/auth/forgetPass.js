@@ -28,7 +28,7 @@ const forgotPassword = asyncHandler(async (req, res) => {
   }
 
   const user = await authSchema.findOne({
-    email,
+    email: email.toLowerCase(),
   });
 
   // Don't reveal whether the email exists
@@ -40,7 +40,6 @@ const forgotPassword = asyncHandler(async (req, res) => {
     });
   }
 
-  // Generate reset token
   const resetToken = generateResetToken();
 
   user.resetPasswordToken = resetToken;
@@ -59,7 +58,6 @@ const forgotPassword = asyncHandler(async (req, res) => {
       resetLink,
     });
   } catch (mailError) {
-    // Remove token if email sending fails
     user.resetPasswordToken = null;
     user.resetPasswordExpiry = null;
 
