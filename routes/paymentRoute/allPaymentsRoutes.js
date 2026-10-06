@@ -15,6 +15,7 @@ const { requireApproved } = require("../../middlewares/requireApproved");
 
 const { submitPayment } = require("../../controllers/payments/submitPayment");
 const { getMyPayments } = require("../../controllers/payments/getMyPayments");
+const { getAllPayments } = require("../../controllers/payments/getAllPayments");
 
 router.post("/submit", requireApproved, submitPayment);
 router.get("/my-payments", requireApproved, getMyPayments);
