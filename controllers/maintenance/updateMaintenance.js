@@ -1,9 +1,17 @@
+const mongoose = require("mongoose");
 const { asyncHandler } = require("../../middlewares/asyncHandler");
 const maintenanceSchema = require("../../models/maintenanceSchema");
 
 const updateMaintenanceStatus = asyncHandler(async (req, res) => {
   const { id } = req.params;
   const { status } = req.body;
+
+  if (!mongoose.isValidObjectId(id)) {
+    return res.status(400).json({
+      success: false,
+      message: "Invalid request ID",
+    });
+  }
 
   if (!status) {
     return res.status(400).json({
@@ -29,12 +37,7 @@ const updateMaintenanceStatus = asyncHandler(async (req, res) => {
   }
 
   maintenanceRequest.status = status;
-
-  if (status === "resolved") {
-    maintenanceRequest.resolvedAt = new Date();
-  } else {
-    maintenanceRequest.resolvedAt = null;
-  }
+  maintenanceRequest.resolvedAt = status === "resolved" ? new Date() : null;
 
   await maintenanceRequest.save();
 
@@ -46,5 +49,5 @@ const updateMaintenanceStatus = asyncHandler(async (req, res) => {
 });
 
 module.exports = {
-  updateMaintenanceStatus
+  updateMaintenanceStatus,
 };

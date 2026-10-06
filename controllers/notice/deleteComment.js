@@ -1,9 +1,17 @@
-const noticeSchema = require("../../models/noticeShcema");
+const mongoose = require("mongoose");
 const { asyncHandler } = require("../../middlewares/asyncHandler");
+const noticeSchema = require("../../models/noticeSchema");
 
-// -------- Delete Comment Controller
+// Permission: admin can delete any comment, tenant can delete only their own
 const deleteComment = asyncHandler(async (req, res) => {
   const { id, commentId } = req.params;
+
+  if (!mongoose.isValidObjectId(id) || !mongoose.isValidObjectId(commentId)) {
+    return res.status(400).json({
+      success: false,
+      message: "Invalid notice or comment ID",
+    });
+  }
 
   const notice = await noticeSchema.findById(id);
 
@@ -23,7 +31,10 @@ const deleteComment = asyncHandler(async (req, res) => {
     });
   }
 
-  if (comment.tenant.toString() !== req.user._id.toString()) {
+  const isOwner = comment.tenant.toString() === req.user._id.toString();
+  const isAdmin = req.user.role === "admin";
+
+  if (!isOwner && !isAdmin) {
     return res.status(403).json({
       success: false,
       message: "You are not allowed to delete this comment",
@@ -31,7 +42,6 @@ const deleteComment = asyncHandler(async (req, res) => {
   }
 
   comment.deleteOne();
-
   await notice.save();
 
   return res.status(200).json({
