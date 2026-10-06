@@ -1,27 +1,57 @@
-const paymentSchema = require("../../models/paymentSchema");
 const { asyncHandler } = require("../../middlewares/asyncHandler");
+const paymentSchema = require("../../models/paymentSchema");
+const authSchema = require("../../models/authSchema");
 
-const VALID_METHODS = ["bKash", "Nagad", "Rocket", "Upay", "Bank", "Cash"];
+
+const VALID_METHODS = [
+  "bKash",
+  "Nagad",
+  "Rocket",
+  "Upay",
+  "Bank",
+  "Cash",
+];
+
+const MONTH_REGEX = /^\d{4}-(0[1-9]|1[0-2])$/;
 
 const submitPayment = asyncHandler(async (req, res) => {
   const { amount, month, transactionId, paymentMethod } = req.body;
 
-  if (!req.user.assignedUnit) {
+  // Get current tenant from database
+  const tenant = await authSchema.findById(req.user._id);
+
+  if (!tenant) {
+    return res.status(404).json({
+      success: false,
+      message: "Tenant not found",
+    });
+  }
+
+  // Tenant must have an assigned unit
+  if (!tenant.assignedUnit) {
     return res.status(400).json({
       success: false,
       message: "You don't have an assigned unit yet",
     });
   }
 
+  // Validate amount
   const parsedAmount = Number(amount);
 
-  if (amount === undefined || amount === null || amount === "" || parsedAmount <= 0) {
+  if (
+    amount === undefined ||
+    amount === null ||
+    amount === "" ||
+    isNaN(parsedAmount) ||
+    parsedAmount <= 0
+  ) {
     return res.status(400).json({
       success: false,
       message: "A valid payment amount is required",
     });
   }
 
+  // Validate month
   if (!month || !MONTH_REGEX.test(month)) {
     return res.status(400).json({
       success: false,
@@ -29,6 +59,7 @@ const submitPayment = asyncHandler(async (req, res) => {
     });
   }
 
+  // Validate transaction ID
   if (!transactionId || !transactionId.trim()) {
     return res.status(400).json({
       success: false,
@@ -36,6 +67,7 @@ const submitPayment = asyncHandler(async (req, res) => {
     });
   }
 
+  // Validate payment method
   if (!paymentMethod || !VALID_METHODS.includes(paymentMethod)) {
     return res.status(400).json({
       success: false,
@@ -43,28 +75,29 @@ const submitPayment = asyncHandler(async (req, res) => {
     });
   }
 
-  // One payment per tenant per unit per month (also enforced by a unique index in the schema)
-  const existing = await paymentSchema.findOne({
-    tenant: req.user._id,
-    unit: req.user.assignedUnit,
+  // Check duplicate payment
+  const existingPayment = await paymentSchema.findOne({
+    tenant: tenant._id,
+    unit: tenant.assignedUnit,
     month,
   });
 
-  if (existing) {
+
+  if (existingPayment) {
     return res.status(409).json({
       success: false,
       message: `A payment for ${month} has already been submitted`,
     });
   }
 
+  // Create payment
   const payment = await paymentSchema.create({
-    tenant: req.user._id,
-    unit: req.user.assignedUnit,
+    tenant: tenant._id,
+    unit: tenant.assignedUnit,
     amount: parsedAmount,
     month,
     transactionId: transactionId.trim(),
     paymentMethod,
-    paidAt: new Date(),
   });
 
   return res.status(201).json({
@@ -74,4 +107,6 @@ const submitPayment = asyncHandler(async (req, res) => {
   });
 });
 
-module.exports = { submitPayment };
+module.exports = {
+  submitPayment,
+};
