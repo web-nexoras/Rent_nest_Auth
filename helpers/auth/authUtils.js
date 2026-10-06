@@ -20,7 +20,7 @@ const generateAccessToken = (user) => {
       role: user.role,
     },
     process.env.JWT_SEC,
-    { expiresIn: "2h" },
+    { expiresIn: "15m" },
   );
 };
 
@@ -33,21 +33,19 @@ const generateRefreshToken = (user) => {
       role: user.role,
     },
     process.env.JWT_SEC,
-    { expiresIn: "15d" },
+    { expiresIn: "7d" },
   );
 };
-
 
 // -----------generateResetToken
 const generateResetToken = () => {
   return crypto.randomBytes(32).toString("hex");
 };
 
-
 module.exports = {
   isValidEmail,
   generateOTP,
   generateAccessToken,
   generateRefreshToken,
-  generateResetToken
+  generateResetToken,
 };

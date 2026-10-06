@@ -35,7 +35,7 @@ router.post(
 );
 router.get("/getmy", requireApproved, getMyMaintenance);
 router.get("/getall", adminOnly, getAllMaintenance);
-router.get("/single/:id", getSingleMaintenance);
+router.get("/single/:id",requireApproved, getSingleMaintenance);
 router.delete("/del/:id", requireApproved, deleteMaintenance);
 router.patch("/update/:id", adminOnly, updateMaintenanceStatus);
 
