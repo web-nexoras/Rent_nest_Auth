@@ -17,6 +17,7 @@ const { submitPayment } = require("../../controllers/payments/submitPayment");
 const { getMyPayments } = require("../../controllers/payments/getMyPayments");
 const { getAllPayments } = require("../../controllers/payments/getAllPayments");
 const { verifyPayment } = require("../../controllers/payments/verifyPayment");
+const { rejectPayment } = require("../../controllers/payments/rejectPayment");
 
 router.post("/submit", requireApproved, submitPayment);
 router.get("/my-payments", requireApproved, getMyPayments);
