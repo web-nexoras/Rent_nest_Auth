@@ -2,8 +2,8 @@ const unitSchema = require("../../models/unitSchema");
 const { asyncHandler } = require("../../middlewares/asyncHandler");
 
 const getAllUnits = asyncHandler(async (req, res) => {
-  const page = Number(req.query.page) || 1;
-  const limit = Number(req.query.limit) || 10;
+  const page = parseInt(req.query.page) || 1;
+  const limit = parseInt(req.query.limit) || 10;
   const skip = (page - 1) * limit;
 
   const total = await unitSchema.countDocuments();
