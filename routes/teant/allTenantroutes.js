@@ -2,10 +2,10 @@ const express = require("express");
 const router = express.Router();
 
 // ----------controllers
-const { getPendingUsers } = require("../../controllers/teant/getPendingUsers");
-const { getAllTenants } = require("../../controllers/teant/getAllTenants");
-const { updateApprovalStatus } = require("../../controllers/teant/updateApprovalStatus");
-const { removeTenant } = require("../../controllers/teant/removeTenant");
+const { getPendingUsers } = require("../../controllers/admin/getPendingUsers");
+const { getAllTenants } = require("../../controllers/admin/getAllTenants");
+const { updateApprovalStatus } = require("../../controllers/admin/updateApprovalStatus");
+const { removeTenant } = require("../../controllers/admin/removeTenant");
 
 
 // ----------middlewares
