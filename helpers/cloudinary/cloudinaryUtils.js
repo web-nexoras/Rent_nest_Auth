@@ -11,14 +11,13 @@ const uploadCloudinary = async ({mimetype, imgBuffer}) => {
 };
 
 // -----------destroy from cloudinary
-const destroyFromCloudinary = (url) => {
+const destroyFromCloudinary = async (url) => {
   const publicId = url.split("/").pop().split(".").shift();
-
-  cloudinary.uploader.destroy(publicId, (error, result) => {
-    if (error) {
-      console.log("Destroy From Cloudinary:", error);
-    }
-  });
+  const result = await cloudinary.uploader.destroy(publicId);
+  if (result?.result === "error") {
+    throw new Error("Cloudinary image deletion failed");
+  }
+  return result;
 };
 
 module.exports = {

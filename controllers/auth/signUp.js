@@ -79,6 +79,11 @@ const signup = asyncHandler(async (req, res) => {
     });
   } catch (mailError) {
     console.error("Signup OTP email failed:", mailError);
+    return res.status(502).json({
+      success: false,
+      message: "Account created, but the verification email could not be sent. Please request a new OTP.",
+      userId: user._id,
+    });
   }
 
   return res.status(201).json({

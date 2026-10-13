@@ -7,10 +7,12 @@ const noticeRoutes = require("./noticeRoute");
 const unitRoutes = require ('./unitRoute')
 const maintenanceRoutes = require("./maintenanceRoute/inedex");
 const teantRoutes = require("./teant");
+const dashboardRoutes = require("./dashboardRoute");
 router.use(baseUrl || "/api/v1", authRoutes);
 router.use(baseUrl || "/api/v1", noticeRoutes);
 router.use(baseUrl || "/api/v1", unitRoutes);
 router.use(baseUrl || "/api/v1", maintenanceRoutes);
 router.use(baseUrl || "/api/v1", teantRoutes);
+router.use(`${baseUrl || "/api/v1"}/dashboard`, dashboardRoutes);
 
 module.exports = router;

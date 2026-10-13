@@ -1,4 +1,14 @@
-require("dotenv").config();
+const path = require("path");
+require("dotenv").config({ path: path.join(__dirname, ".env") });
+
+const requiredEnvVars = ["DB_URL", "JWT_SEC", "CLIENT_URL"];
+const missingEnvVars = requiredEnvVars.filter((name) => !process.env[name]);
+
+if (missingEnvVars.length > 0) {
+  console.error(`Missing required environment variables: ${missingEnvVars.join(", ")}`);
+  console.error("Add them to the project .env file and restart the server.");
+  process.exit(1);
+}
 
 const express = require("express");
 const router = require("./routes");
