@@ -23,3 +23,4 @@ router.post("/comment/:id", requireApproved, addComment);
 router.delete("/del-comment/:id/:commentId", deleteComment);
 
 module.exports = router;
+ 

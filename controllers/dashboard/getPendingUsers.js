@@ -1,7 +1,6 @@
 const { asyncHandler } = require("../../middlewares/asyncHandler");
 const authSchema = require("../../models/authSchema");
 
-// Admin only.
 const getPendingUsers = asyncHandler(async (req, res) => {
   const pendingUsers = await authSchema
     .find({ role: "tenant", approvalStatus: "pending" })

@@ -44,5 +44,5 @@ const getAllTenants = asyncHandler(async (req, res) => {
 });
 
 module.exports = {
-  getAllTenants,
+  getAllTenants
 };

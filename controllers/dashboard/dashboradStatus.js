@@ -11,7 +11,7 @@ const getCurrentMonth = () => {
   return `${year}-${month}`;
 };
 
-// Admin only.
+
 const getAdminDashboardStats = asyncHandler(async (req, res) => {
   const currentMonth = getCurrentMonth();
 
