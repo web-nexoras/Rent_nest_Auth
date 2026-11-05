@@ -1,15 +1,9 @@
+const { baseCookieConfig } = require("../../helpers/auth/cookies");
+
 const logOut = (req, res) => {
   res
-    .clearCookie("accTkn", {
-      httpOnly: true,
-      secure: process.env.NODE_ENV === "production",
-      sameSite: "strict",
-    })
-    .clearCookie("refTkn", {
-      httpOnly: true,
-      secure: process.env.NODE_ENV === "production",
-      sameSite: "strict",
-    })
+    .clearCookie("accTkn", baseCookieConfig)
+    .clearCookie("refTkn", baseCookieConfig)
     .status(200)
     .json({
       success: true,

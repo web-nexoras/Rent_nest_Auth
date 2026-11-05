@@ -3,6 +3,7 @@ const authSchema = require("../../models/authSchema");
 const {
   isValidEmail,
   generateResetToken,
+  hashToken,
 } = require("../../helpers/auth/authUtils");
 
 const { mailSender } = require("../../helpers/email/mailService");
@@ -42,7 +43,7 @@ const forgotPassword = asyncHandler(async (req, res) => {
 
   const resetToken = generateResetToken();
 
-  user.resetPasswordToken = resetToken;
+  user.resetPasswordToken = hashToken(resetToken);
   user.resetPasswordExpiry = new Date(Date.now() + 15 * 60 * 1000);
 
   await user.save({

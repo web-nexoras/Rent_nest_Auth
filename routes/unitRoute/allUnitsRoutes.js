@@ -1,7 +1,6 @@
 const express = require("express");
 const router = express.Router();
-const multer = require("multer");
-const upload = multer();
+const { imageUpload } = require("../../helpers/upload");
 
 // -------controlllers
 const { createUnit } = require("../../controllers/unit/createUnit");
@@ -11,16 +10,18 @@ const { deleteUnit } = require("../../controllers/unit/deleteUnit");
 const { updateUnit } = require("../../controllers/unit/updateUnit");
 const { assignTenant } = require("../../controllers/unit/assignTenant");
 const { unassignTenant } = require("../../controllers/unit/unassignTenant");
+const { getMyUnit } = require("../../controllers/unit/getMyUnit");
 
 // --------middleweres
 const { adminOnly } = require("../../middlewares/adminOnly");
 const { requireApproved } = require("../../middlewares/requireApproved");
 
-router.post("/create", adminOnly,upload.array("images", 3),createUnit,);
+router.post("/create", adminOnly, imageUpload.array("images", 3), createUnit);
 router.get("/all-unit", adminOnly, getAllUnits);
+router.get("/my-unit", requireApproved, getMyUnit);
 router.get("/single-unit/:id", requireApproved, getSingleUnit);
 router.delete("/del-unit/:id", adminOnly, deleteUnit);
-router.patch("/update-unit/:id", adminOnly, upload.array("images", 3), updateUnit);
+router.patch("/update-unit/:id", adminOnly, imageUpload.array("images", 3), updateUnit);
 router.patch("/assign-tenant/:id", adminOnly, assignTenant);
 router.patch("/unassign-tenant/:id", adminOnly, unassignTenant);
 

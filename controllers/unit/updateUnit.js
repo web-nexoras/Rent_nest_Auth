@@ -7,6 +7,7 @@ const {
   uploadCloudinary,
   destroyFromCloudinary,
 } = require("../../helpers/cloudinary/cloudinaryUtils");
+const { parseNumber } = require("../../helpers/numbers");
 
 // -------- Update Unit Controller
 
@@ -81,19 +82,31 @@ const updateUnit = asyncHandler(async (req, res) => {
   // ---------- Size
 
   if (sizeSqft !== undefined) {
-    unit.sizeSqft = sizeSqft;
+    const size = parseNumber(sizeSqft, "Size", { min: 0 });
+    if (size.error) {
+      return res.status(400).json({ success: false, message: size.error });
+    }
+    unit.sizeSqft = size.value;
   }
 
   // ---------- Bedrooms
 
   if (bedrooms !== undefined) {
-    unit.bedrooms = bedrooms;
+    const beds = parseNumber(bedrooms, "Bedrooms", { min: 0, integer: true });
+    if (beds.error) {
+      return res.status(400).json({ success: false, message: beds.error });
+    }
+    unit.bedrooms = beds.value;
   }
 
   // ---------- Rent
 
   if (rentAmount !== undefined) {
-    unit.rentAmount = rentAmount;
+    const rent = parseNumber(rentAmount, "Rent amount", { required: true, min: 0 });
+    if (rent.error) {
+      return res.status(400).json({ success: false, message: rent.error });
+    }
+    unit.rentAmount = rent.value;
   }
 
   // ---------- Description

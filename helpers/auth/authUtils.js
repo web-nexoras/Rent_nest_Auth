@@ -42,10 +42,15 @@ const generateResetToken = () => {
   return crypto.randomBytes(32).toString("hex");
 };
 
+const hashToken = (value) => {
+  return crypto.createHash("sha256").update(String(value)).digest("hex");
+};
+
 module.exports = {
   isValidEmail,
   generateOTP,
   generateAccessToken,
   generateRefreshToken,
   generateResetToken,
+  hashToken,
 };

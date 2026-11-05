@@ -1,6 +1,6 @@
 const { asyncHandler } = require("../../middlewares/asyncHandler");
 
-const { generateOTP } = require("../../helpers/auth/authUtils");
+const { generateOTP, hashToken } = require("../../helpers/auth/authUtils");
 
 const { mailSender } = require("../../helpers/email/mailService");
 
@@ -32,7 +32,7 @@ const resendOtp = asyncHandler(async (req, res) => {
   // Generate new OTP
   const otp = generateOTP();
 
-  user.otp = otp;
+  user.otp = hashToken(otp);
   user.otpExpiry = new Date(Date.now() + 5 * 60 * 1000);
 
   await user.save();

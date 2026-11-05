@@ -20,7 +20,7 @@ router.get("/single/:id", getNotice);
 router.delete("/del/:id", adminOnly, deleteNotice);
 router.patch("/update/:id", adminOnly, updateNotice);
 router.post("/comment/:id", requireApproved, addComment);
-router.delete("/del-comment/:id/:commentId", deleteComment);
+router.delete("/del-comment/:id/:commentId", requireApproved, deleteComment);
 
 module.exports = router;
  

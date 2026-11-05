@@ -8,14 +8,16 @@ const {
   uploadCloudinary,
 } = require("../../helpers/cloudinary/cloudinaryUtils");
 
+const CATEGORIES = ["plumbing", "electrical", "gas", "other"];
+
 const createMaintenance = asyncHandler(async (req, res) => {
   const { category, description } = req.body;
   const images = req.files;
 
-  if (!category) { 
+  if (!CATEGORIES.includes(category)) {
     return res.status(400).json({
       success: false,
-      message: "Category is required",
+      message: `Category must be one of: ${CATEGORIES.join(", ")}`,
     });
   }
 

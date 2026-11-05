@@ -1,13 +1,11 @@
 const { asyncHandler } = require("../../middlewares/asyncHandler");
 const paymentSchema = require("../../models/paymentSchema");
+const { parsePagination } = require("../../helpers/pagination");
+const { isValidMonth } = require("../../helpers/month");
 
 const getAllPayments = asyncHandler(async (req, res) => {
-  const { status } = req.query;
-
-  const page = parseInt(req.query.page) || 1;
-  const limit = parseInt(req.query.limit) || 10;
-
-  const skip = (page - 1) * limit;
+  const { status, month } = req.query;
+  const { page, limit, skip } = parsePagination(req.query);
 
   const filter = {};
 
@@ -21,6 +19,16 @@ const getAllPayments = asyncHandler(async (req, res) => {
     }
 
     filter.status = status;
+  }
+
+  if (month) {
+    if (!isValidMonth(month)) {
+      return res.status(400).json({
+        success: false,
+        message: "Month must be in YYYY-MM format",
+      });
+    }
+    filter.month = month;
   }
 
   const payments = await paymentSchema

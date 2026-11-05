@@ -21,9 +21,11 @@ const getSingleMaintenance = asyncHandler(async (req, res) => {
     });
   }
 
+  const ownerId = maintenanceRequest.tenant?._id || maintenanceRequest.tenant;
+
   if (
     req.user.role !== "admin" &&
-    maintenanceRequest.tenant._id.toString() !== req.user._id.toString()
+    (!ownerId || ownerId.toString() !== req.user._id.toString())
   ) {
     return res.status(403).json({
       success: false,

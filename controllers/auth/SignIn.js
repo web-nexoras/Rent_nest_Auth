@@ -6,22 +6,10 @@ const {
   generateAccessToken,
   generateRefreshToken,
 } = require("../../helpers/auth/authUtils");
-
-const baseCookieConfig = {
-  httpOnly: true,
-  secure: process.env.NODE_ENV === "production",
-  sameSite: "strict",
-};
-
-const accessCookieConfig = {
-  ...baseCookieConfig,
-  maxAge: 15 * 60 * 1000, 
-};
-
-const refreshCookieConfig = {
-  ...baseCookieConfig,
-  maxAge: 7 * 24 * 60 * 60 * 1000, 
-};
+const {
+  accessCookieConfig,
+  refreshCookieConfig,
+} = require("../../helpers/auth/cookies");
 
 // ---- Signin Controller
 const signin = asyncHandler(async (req, res) => {
@@ -68,22 +56,8 @@ const signin = asyncHandler(async (req, res) => {
     });
   }
 
-  // Check tenant approval
-  if (user.role === "tenant" && user.approvalStatus !== "approved") {
-    if (user.approvalStatus === "pending") {
-      return res.status(403).json({
-        success: false,
-        message: "Your account is under review",
-      });
-    }
-
-    if (user.approvalStatus === "rejected") {
-      return res.status(403).json({
-        success: false,
-        message: "Your account has been rejected",
-      });
-    }
-  }
+  // Pending and rejected tenants can sign in to see their status.
+  // Business routes stay blocked by requireApproved.
 
   // Generate access token
   const accessToken = generateAccessToken(user);
@@ -105,6 +79,9 @@ const signin = asyncHandler(async (req, res) => {
         phone: user.phone,
         role: user.role,
         profileImage: user.profileImage,
+        approvalStatus: user.approvalStatus,
+        isActive: user.isActive,
+        assignedUnit: user.assignedUnit,
       },
     });
 });

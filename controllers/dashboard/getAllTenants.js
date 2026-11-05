@@ -1,13 +1,10 @@
 const { asyncHandler } = require("../../middlewares/asyncHandler");
 const authSchema = require("../../models/authSchema");
+const { parsePagination } = require("../../helpers/pagination");
 
 const getAllTenants = asyncHandler(async (req, res) => {
-  const { status } = req.query;
-
-  const page = parseInt(req.query.page) || 1;
-  const limit = parseInt(req.query.limit) || 10;
-
-  const skip = (page - 1) * limit;
+  const { status, search } = req.query;
+  const { page, limit, skip } = parsePagination(req.query);
 
   const filter = {
     role: "tenant",
@@ -22,6 +19,15 @@ const getAllTenants = asyncHandler(async (req, res) => {
     }
 
     filter.approvalStatus = status;
+  }
+
+  if (typeof search === "string" && search.trim()) {
+    const term = search.trim();
+    filter.$or = [
+      { name: { $regex: term.replace(/[.*+?^${}()|[\]\\]/g, "\\$&"), $options: "i" } },
+      { email: { $regex: term.replace(/[.*+?^${}()|[\]\\]/g, "\\$&"), $options: "i" } },
+      { phone: { $regex: term.replace(/[.*+?^${}()|[\]\\]/g, "\\$&"), $options: "i" } },
+    ];
   }
 
   const tenants = await authSchema

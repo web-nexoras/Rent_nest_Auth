@@ -3,6 +3,7 @@ const unitSchema = require("../../models/unitSchema");
 const { asyncHandler } = require("../../middlewares/asyncHandler");
 
 const { uploadCloudinary } = require("../../helpers/cloudinary/cloudinaryUtils");
+const { parseNumber } = require("../../helpers/numbers");
 
 // -------- Create Unit Controller
 
@@ -19,24 +20,34 @@ const createUnit = asyncHandler(async (req, res) => {
   const images = req.files;
 
   // ---------- Validation
-  if (!unitNumber || !unitNumber.trim()) {
+  const cleanUnitNumber = typeof unitNumber === "string" ? unitNumber.trim() : "";
+
+  if (!cleanUnitNumber) {
     return res.status(400).json({
       success: false,
       message: "Unit number is required",
     });
   }
 
-  if (rentAmount === undefined || rentAmount === null) {
-    return res.status(400).json({
-      success: false,
-      message: "Rent amount is required",
-    });
+  const rent = parseNumber(rentAmount, "Rent amount", { required: true, min: 0 });
+  if (rent.error) {
+    return res.status(400).json({ success: false, message: rent.error });
+  }
+
+  const size = parseNumber(sizeSqft, "Size", { min: 0 });
+  if (size.error) {
+    return res.status(400).json({ success: false, message: size.error });
+  }
+
+  const beds = parseNumber(bedrooms, "Bedrooms", { min: 0, integer: true });
+  if (beds.error) {
+    return res.status(400).json({ success: false, message: beds.error });
   }
 
   // ---------- Check Duplicate Unit
 
   const existingUnit = await unitSchema.findOne({
-    unitNumber: unitNumber.trim(),
+    unitNumber: cleanUnitNumber,
   });
 
   if (existingUnit) {
@@ -62,11 +73,11 @@ const createUnit = asyncHandler(async (req, res) => {
 
   // ---------- Create Unit
   const unit = await unitSchema.create({
-    unitNumber,
+    unitNumber: cleanUnitNumber,
     floor,
-    sizeSqft,
-    bedrooms,
-    rentAmount,
+    sizeSqft: size.value,
+    bedrooms: beds.value,
+    rentAmount: rent.value,
     description,
     images: imageUrls,
   });

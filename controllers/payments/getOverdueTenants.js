@@ -1,17 +1,17 @@
 const { asyncHandler } = require("../../middlewares/asyncHandler");
 const authSchema = require("../../models/authSchema");
 const paymentSchema = require("../../models/paymentSchema");
-
-const getCurrentMonth = () => {
-  const now = new Date();
-  const year = now.getFullYear();
-  const month = String(now.getMonth() + 1).padStart(2, "0");
-  return `${year}-${month}`;
-};
-
+const { getCurrentMonth, isValidMonth } = require("../../helpers/month");
 
 const getOverdueTenants = asyncHandler(async (req, res) => {
   const currentMonth = req.query.month || getCurrentMonth();
+
+  if (!isValidMonth(currentMonth)) {
+    return res.status(400).json({
+      success: false,
+      message: "Month must be in YYYY-MM format",
+    });
+  }
 
   const paidTenantIds = await paymentSchema.distinct("tenant", {
     month: currentMonth,

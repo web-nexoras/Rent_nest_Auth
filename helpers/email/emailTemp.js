@@ -31,7 +31,7 @@ const emailTemp = ({ otp, resetLink }) => {
 
           <p style="margin-top:25px;color:#64748b">
             This link will expire in
-            <b>10 minutes</b>.
+            <b>15 minutes</b>.
           </p>
 
         </div>

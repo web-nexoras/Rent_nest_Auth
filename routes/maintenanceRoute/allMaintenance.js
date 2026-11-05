@@ -1,7 +1,6 @@
 const express = require("express");
 const router = express.Router();
-const multer = require("multer");
-const upload = multer();
+const { imageUpload } = require("../../helpers/upload");
 
 // ----------controllerss
 const {
@@ -30,7 +29,7 @@ const { requireApproved } = require("../../middlewares/requireApproved");
 router.post(
   "/create",
   requireApproved,
-  upload.array("images", 3),
+  imageUpload.array("images", 3),
   createMaintenance,
 );
 router.get("/getmy", requireApproved, getMyMaintenance);

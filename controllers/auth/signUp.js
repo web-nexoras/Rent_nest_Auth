@@ -1,6 +1,10 @@
 const { asyncHandler } = require("../../middlewares/asyncHandler");
 
-const { generateOTP, isValidEmail } = require("../../helpers/auth/authUtils");
+const {
+  generateOTP,
+  isValidEmail,
+  hashToken,
+} = require("../../helpers/auth/authUtils");
 
 const { mailSender } = require("../../helpers/email/mailService");
 const authSchema = require("../../models/authSchema");
@@ -9,10 +13,10 @@ const authSchema = require("../../models/authSchema");
 const signup = asyncHandler(async (req, res) => {
   const { name, email, phone, password } = req.body;
 
-  if (!name) {
+  if (!name || name.trim().length < 3 || name.trim().length > 25) {
     return res.status(400).json({
       success: false,
-      message: "Name is required",
+      message: "Name must be between 3 and 25 characters",
     });
   }
 
@@ -63,11 +67,11 @@ const signup = asyncHandler(async (req, res) => {
   const otp = generateOTP();
 
   const user = await authSchema.create({
-    name,
+    name: name.trim(),
     email,
-    phone,
+    phone: phone.trim(),
     password,
-    otp,
+    otp: hashToken(otp),
     otpExpiry: new Date(Date.now() + 5 * 60 * 1000),
   });
 

@@ -55,10 +55,21 @@ const updateApprovalStatus = asyncHandler(async (req, res) => {
     });
   }
 
-  if (!unitId || !mongoose.isValidObjectId(unitId)) {
+  tenant.approvalStatus = "approved";
+
+  if (!unitId) {
+    await tenant.save();
+    return res.status(200).json({
+      success: true,
+      message: "Tenant approved. Assign a unit when one is available.",
+      tenant,
+    });
+  }
+
+  if (!mongoose.isValidObjectId(unitId)) {
     return res.status(400).json({
       success: false,
-      message: "A valid unitId is required to approve a tenant",
+      message: "unitId must be a valid unit id",
     });
   }
 
@@ -78,7 +89,13 @@ const updateApprovalStatus = asyncHandler(async (req, res) => {
     });
   }
 
-  tenant.approvalStatus = "approved";
+  if (tenant.assignedUnit) {
+    return res.status(409).json({
+      success: false,
+      message: "Tenant is already assigned to a unit",
+    });
+  }
+
   tenant.assignedUnit = unit._id;
   unit.assignedTenant = tenant._id;
 

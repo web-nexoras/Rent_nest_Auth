@@ -1,6 +1,7 @@
 const authSchema = require("../../models/authSchema");
 
 const { asyncHandler } = require("../../middlewares/asyncHandler");
+const { hashToken } = require("../../helpers/auth/authUtils");
 
 // -------- Reset Password Controller
 const resetPassword = asyncHandler(async (req, res) => {
@@ -30,7 +31,7 @@ const resetPassword = asyncHandler(async (req, res) => {
 
   const user = await authSchema
     .findOne({
-      resetPasswordToken: token,
+      resetPasswordToken: hashToken(token),
       resetPasswordExpiry: { $gt: new Date() },
     })
     .select("+resetPasswordToken +resetPasswordExpiry");

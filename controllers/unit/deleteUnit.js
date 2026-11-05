@@ -1,6 +1,7 @@
 const mongoose = require("mongoose");
 const unitSchema = require("../../models/unitSchema");
 const { asyncHandler } = require("../../middlewares/asyncHandler");
+const { destroyFromCloudinary } = require("../../helpers/cloudinary/cloudinaryUtils");
 
 const deleteUnit = asyncHandler(async (req, res) => {
   const { id } = req.params;
@@ -26,6 +27,16 @@ const deleteUnit = asyncHandler(async (req, res) => {
       success: false,
       message: "Cannot delete an occupied unit. Remove the tenant first.",
     });
+  }
+
+  if (unit.images?.length) {
+    for (const image of unit.images) {
+      try {
+        await destroyFromCloudinary(image);
+      } catch (error) {
+        console.error("Unit image delete error:", error);
+      }
+    }
   }
 
   await unit.deleteOne();

@@ -1,6 +1,7 @@
 const { asyncHandler } = require("../../middlewares/asyncHandler");
 const paymentSchema = require("../../models/paymentSchema");
 const authSchema = require("../../models/authSchema");
+const { isValidMonth } = require("../../helpers/month");
 
 
 const VALID_METHODS = [
@@ -12,10 +13,15 @@ const VALID_METHODS = [
   "Cash",
 ];
 
-const MONTH_REGEX = /^\d{4}-(0[1-9]|1[0-2])$/;
-
 const submitPayment = asyncHandler(async (req, res) => {
   const { amount, month, transactionId, paymentMethod } = req.body;
+
+  if (req.user.role !== "tenant") {
+    return res.status(403).json({
+      success: false,
+      message: "Only tenants can submit rent payments",
+    });
+  }
 
   // Get current tenant from database
   const tenant = await authSchema.findById(req.user._id);
@@ -52,26 +58,31 @@ const submitPayment = asyncHandler(async (req, res) => {
   }
 
   // Validate month
-  if (!month || !MONTH_REGEX.test(month)) {
+  if (!month || !isValidMonth(month)) {
     return res.status(400).json({
       success: false,
       message: "Month is required in YYYY-MM format",
     });
   }
 
-  // Validate transaction ID
-  if (!transactionId || !transactionId.trim()) {
-    return res.status(400).json({
-      success: false,
-      message: "Transaction ID is required",
-    });
-  }
-
-  // Validate payment method
   if (!paymentMethod || !VALID_METHODS.includes(paymentMethod)) {
     return res.status(400).json({
       success: false,
       message: `Payment method must be one of: ${VALID_METHODS.join(", ")}`,
+    });
+  }
+
+  let cleanTransactionId =
+    typeof transactionId === "string" ? transactionId.trim() : "";
+
+  if (!cleanTransactionId && paymentMethod === "Cash") {
+    cleanTransactionId = `CASH-${Date.now()}`;
+  }
+
+  if (!cleanTransactionId) {
+    return res.status(400).json({
+      success: false,
+      message: "Transaction ID is required",
     });
   }
 
@@ -82,6 +93,23 @@ const submitPayment = asyncHandler(async (req, res) => {
     month,
   });
 
+
+  if (existingPayment && existingPayment.status === "rejected") {
+    existingPayment.amount = parsedAmount;
+    existingPayment.transactionId = cleanTransactionId;
+    existingPayment.paymentMethod = paymentMethod;
+    existingPayment.status = "pending";
+    existingPayment.verifiedBy = null;
+    existingPayment.verifiedAt = null;
+    existingPayment.paidAt = new Date();
+    await existingPayment.save();
+
+    return res.status(200).json({
+      success: true,
+      message: "Rejected payment resubmitted. Awaiting admin verification.",
+      payment: existingPayment,
+    });
+  }
 
   if (existingPayment) {
     return res.status(409).json({
@@ -96,7 +124,7 @@ const submitPayment = asyncHandler(async (req, res) => {
     unit: tenant.assignedUnit,
     amount: parsedAmount,
     month,
-    transactionId: transactionId.trim(),
+    transactionId: cleanTransactionId,
     paymentMethod,
   });
 

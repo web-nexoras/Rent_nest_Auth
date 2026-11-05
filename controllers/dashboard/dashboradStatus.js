@@ -3,13 +3,7 @@ const authSchema = require("../../models/authSchema");
 const unitSchema = require("../../models/unitSchema");
 const paymentSchema = require("../../models/paymentSchema");
 const maintenanceSchema = require("../../models/maintenanceSchema");
-
-const getCurrentMonth = () => {
-  const now = new Date();
-  const year = now.getFullYear();
-  const month = String(now.getMonth() + 1).padStart(2, "0");
-  return `${year}-${month}`;
-};
+const { getCurrentMonth } = require("../../helpers/month");
 
 
 const getAdminDashboardStats = asyncHandler(async (req, res) => {
@@ -23,6 +17,7 @@ const getAdminDashboardStats = asyncHandler(async (req, res) => {
     pendingMaintenanceCount,
     collectionResult,
     paidTenantIds,
+    revenueRows,
   ] = await Promise.all([
     unitSchema.countDocuments({}),
     unitSchema.countDocuments({ status: "occupied" }),
@@ -37,6 +32,12 @@ const getAdminDashboardStats = asyncHandler(async (req, res) => {
       month: currentMonth,
       status: { $in: ["pending", "verified"] },
     }),
+    paymentSchema.aggregate([
+      { $match: { status: "verified" } },
+      { $group: { _id: "$month", total: { $sum: "$amount" }, count: { $sum: 1 } } },
+      { $sort: { _id: -1 } },
+      { $limit: 6 },
+    ]),
   ]);
 
   const overdueTenantsCount = await authSchema.countDocuments({
@@ -61,6 +62,13 @@ const getAdminDashboardStats = asyncHandler(async (req, res) => {
       thisMonthCollection,
       overdueTenantsCount,
       pendingMaintenanceCount,
+      revenueTrend: revenueRows
+        .map((row) => ({
+          month: row._id,
+          total: row.total,
+          count: row.count,
+        }))
+        .reverse(),
     },
   });
 });
