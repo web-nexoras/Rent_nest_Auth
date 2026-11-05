@@ -804,3 +804,73 @@ MERN Stack Developer | Full Stack Developer
 > **Build the core. Test it properly. Improve it continuously.**
 
 Rent Nest is developed incrementally with a focus on **clean architecture, secure APIs, maintainable code, real-world business logic, and scalable backend development**.
+
+# Current End-to-End Project Flow
+
+This section describes how the implemented backend currently handles a request from sign-up through everyday tenant and admin tasks. The API prefix defaults to `/api/v1` and can be changed with `BASE_URL`.
+
+## 1. Server startup and request handling
+
+1. `server.js` loads environment variables, configures CORS using `CLIENT_URL`, enables JSON and cookie parsing, mounts the routers, and connects to MongoDB.
+2. Requests pass through the router mounted in `routes/index.js`. Feature routers are mounted below the API prefix. Unknown URLs return a JSON 404 response. `/health` and `<BASE_URL>/health` report database readiness.
+3. Private endpoints read the access token from the `accTkn` cookie. `authMiddleware` verifies the JWT, loads the current user, and attaches that user to `req.user`. Feature routers also apply `checkActive`; role and approval middleware then enforce each endpoint's access rules.
+4. Controllers perform validation and database work through Mongoose models. Errors from async controllers flow to the shared error handler.
+
+## 2. Tenant account lifecycle
+
+1. A tenant creates an account through `POST /auth/signup`. The account starts as a tenant awaiting email OTP verification and admin approval.
+2. `POST /auth/verify-otp` verifies the email code. `POST /auth/resend-otp` can send another code when needed. OTP and password reset emails use the mail service.
+3. The tenant signs in at `POST /auth/signin`. The access token is stored in an HTTP-only cookie by the authentication flow. `POST /auth/refresh-token` refreshes the session and `POST /auth/log-out` clears it.
+4. Admins review pending accounts using `GET /admin/pending`, then approve or reject one with `PATCH /admin/tenants/:id/approval`. Approved tenants can use the business endpoints; inactive accounts are blocked by `checkActive`.
+5. Authenticated users can read their profile at `GET /auth/get-profile` and update it at `PUT /auth/update-profile`. Profile image upload uses the shared upload middleware and configured Cloudinary storage.
+
+## 3. Unit and tenant assignment flow
+
+1. Admin creates a unit with `POST /unit/create`, and can browse, update, or delete units with the corresponding `/unit` routes.
+2. A unit stores its rent amount, optional unit details, occupancy, and `rentDueDay` (defaults to day 1; values from 1 to 31 are supported).
+3. Admin assigns an approved tenant through `PATCH /unit/assign-tenant/:id`. The unit and tenant references are kept in sync. Admin can remove the assignment through `/unit/unassign-tenant/:id`.
+4. Tenants view their own assigned unit through `GET /unit/my-unit`; access to unit details is restricted by the controller.
+
+## 4. Rent payment and receipt flow
+
+1. An approved tenant with an assigned unit submits a payment using `POST /payment/submit`. The request includes amount, `YYYY-MM` rent month, payment method, and transaction ID (cash payments can generate an ID).
+2. The API prevents a second active submission for the same tenant, unit, and month. A rejected payment can be submitted again for that month.
+3. Tenants see their history at `GET /payment/my-payments`. Admins review all submissions at `GET /payment/all-payments`, then verify or reject one with `PATCH /payment/verify/:id` or `/payment/reject/:id`.
+4. Verification saves the verifier and timestamp, then sends the tenant a receipt email when email credentials are configured. Tenants can retrieve structured receipt details for their own verified payment at `GET /payment/receipt/:id`.
+5. Admins can check unpaid tenants at `GET /payment/overdue?month=YYYY-MM` and see collections, outstanding rent, and status counts at `GET /payment/monthly-report?month=YYYY-MM`.
+
+## 5. Tenant dashboard flow
+
+`GET /admin/tenant` is the current tenant dashboard endpoint. It returns the assigned unit, current month's payment state and amount due, recent payments, count and latest items for maintenance requests, and the five newest notices. If the tenant has no unit yet, the response still includes recent notices and returns empty unit/payment/maintenance summary values.
+
+The dashboard's rent due date is calculated from the unit's `rentDueDay` for the current month. A configured day that does not exist in that month (for example day 31 in February) is clamped to that month's last day. The overdue flag becomes true after that due date has passed and the current month's rent is not verified.
+
+## 6. Notice flow
+
+Admins create, edit, and delete notices. Authenticated users can list and view notices. Approved tenants can add comments; approved users can delete comments subject to the controller's ownership rules. The tenant dashboard shows the five newest notices as a preview.
+
+## 7. Maintenance flow
+
+1. Approved tenants submit a maintenance request with category, description, and optional images through `POST /maintenance/create`.
+2. Tenants can list their requests at `/maintenance/getmy`, open a request at `/maintenance/single/:id`, and delete their own pending request.
+3. Admins view requests at `/maintenance/getall` and change status at `PATCH /maintenance/update/:id`. Status values are `pending`, `in-progress`, and `resolved`.
+4. The tenant dashboard summarizes unresolved request count and the three most recently updated requests.
+
+## 8. Admin dashboard and scheduled rent reminders
+
+Admins use `GET /admin` for unit occupancy, tenant approval, current-month collections, overdue tenant count, pending maintenance, and recent revenue trend. Tenant management routes under `/admin/tenants` support listing, approval, activation, and removal.
+
+The reminder job starts after a successful MongoDB connection. At the hour configured by `RENT_REMINDER_HOUR` (defaults to 9, using the server's local timezone), it checks active approved tenants with an assigned unit. If the tenant has no pending or verified payment for the current month, it sends one reminder email for that tenant and month. A database record prevents duplicate monthly reminders across server restarts. Email delivery requires `EMAIL_USER` and `EMAIL_PASS`.
+
+## 9. Main route prefixes
+
+| Feature | Prefix | Examples |
+|---|---|---|
+| Authentication and profile | `/auth` | `/auth/signup`, `/auth/get-profile` |
+| Notices | `/notice` | `/notice/getall`, `/notice/create` |
+| Units | `/unit` | `/unit/my-unit`, `/unit/assign-tenant/:id` |
+| Payments | `/payment` | `/payment/submit`, `/payment/monthly-report` |
+| Maintenance | `/maintenance` | `/maintenance/create`, `/maintenance/getmy` |
+| Admin and tenant dashboard | `/admin` | `/admin`, `/admin/tenant`, `/admin/pending` |
+
+All feature paths above are relative to the configured API prefix, which defaults to `/api/v1`.

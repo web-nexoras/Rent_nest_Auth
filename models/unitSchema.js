@@ -25,6 +25,12 @@ const unitSchema = new mongoose.Schema(
       required: [true, "Rent amount is required"],
       min: 0,
     },
+    rentDueDay: {
+      type: Number,
+      min: 1,
+      max: 31,
+      default: 1,
+    },
     status: {
       type: String,
       enum: ["vacant", "occupied"],

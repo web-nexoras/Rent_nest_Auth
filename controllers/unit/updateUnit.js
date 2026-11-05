@@ -29,6 +29,7 @@ const updateUnit = asyncHandler(async (req, res) => {
     sizeSqft,
     bedrooms,
     rentAmount,
+    rentDueDay,
     description,
   } = req.body;
 
@@ -48,10 +49,7 @@ const updateUnit = asyncHandler(async (req, res) => {
   // ---------- Unit Number
 
   if (unitNumber !== undefined) {
-    if (
-      typeof unitNumber !== "string" ||
-      !unitNumber.trim()
-    ) {
+    if (typeof unitNumber !== "string" || !unitNumber.trim()) {
       return res.status(400).json({
         success: false,
         message: "Unit number cannot be empty",
@@ -102,11 +100,26 @@ const updateUnit = asyncHandler(async (req, res) => {
   // ---------- Rent
 
   if (rentAmount !== undefined) {
-    const rent = parseNumber(rentAmount, "Rent amount", { required: true, min: 0 });
+    const rent = parseNumber(rentAmount, "Rent amount", {
+      required: true,
+      min: 0,
+    });
     if (rent.error) {
       return res.status(400).json({ success: false, message: rent.error });
     }
     unit.rentAmount = rent.value;
+  }
+
+  if (rentDueDay !== undefined) {
+    const dueDay = parseNumber(rentDueDay, "Rent due day", {
+      min: 1,
+      max: 31,
+      integer: true,
+    });
+    if (dueDay.error) {
+      return res.status(400).json({ success: false, message: dueDay.error });
+    }
+    unit.rentDueDay = dueDay.value;
   }
 
   // ---------- Description

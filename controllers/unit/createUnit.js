@@ -14,6 +14,7 @@ const createUnit = asyncHandler(async (req, res) => {
     sizeSqft,
     bedrooms,
     rentAmount,
+    rentDueDay,
     description,
   } = req.body;
 
@@ -32,6 +33,11 @@ const createUnit = asyncHandler(async (req, res) => {
   const rent = parseNumber(rentAmount, "Rent amount", { required: true, min: 0 });
   if (rent.error) {
     return res.status(400).json({ success: false, message: rent.error });
+  }
+
+  const dueDay = parseNumber(rentDueDay, "Rent due day", { min: 1, max: 31, integer: true });
+  if (dueDay.error) {
+    return res.status(400).json({ success: false, message: dueDay.error });
   }
 
   const size = parseNumber(sizeSqft, "Size", { min: 0 });
@@ -78,6 +84,7 @@ const createUnit = asyncHandler(async (req, res) => {
     sizeSqft: size.value,
     bedrooms: beds.value,
     rentAmount: rent.value,
+    rentDueDay: dueDay.value ?? 1,
     description,
     images: imageUrls,
   });
