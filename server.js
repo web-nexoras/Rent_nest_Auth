@@ -4,6 +4,7 @@ const router = require("./routes");
 const cookieParser = require("cookie-parser");
 const dbConfig = require("./configs/dbConfig");
 const { errorHandler } = require("./middlewares/errorHandler");
+const { sendMonthlyRentReminders } = require("./helpers/reminders/rentReminderService");
 
 const cors = require("cors");
 const PORT = process.env.PORT || 8000;
@@ -39,7 +40,18 @@ app.use(router);
 
 app.use(errorHandler);
 
-dbConfig();
+dbConfig().then((connected) => {
+  if (!connected) return;
+  let lastRunDate = "";
+  const reminderHour = Number(process.env.RENT_REMINDER_HOUR ?? 9);
+  setInterval(() => {
+    const now = new Date();
+    const date = `${now.getFullYear()}-${now.getMonth()}-${now.getDate()}`;
+    if (now.getHours() !== reminderHour || lastRunDate === date) return;
+    lastRunDate = date;
+    sendMonthlyRentReminders().catch((error) => console.error("Rent reminder job failed:", error.message));
+  }, 60 * 1000);
+});
 
 app.listen(PORT, () => {
   console.log(`Server is running on port ${PORT}`);

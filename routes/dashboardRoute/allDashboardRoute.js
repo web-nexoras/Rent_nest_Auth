@@ -4,25 +4,24 @@ const router = express.Router();
 // ----------controllers
 const {
   getAdminDashboardStats,
-} = require("../../controllers/dashboard/dashboradStatus");
-const { getAllTenants } = require("../../controllers/dashboard/getAllTenants");
+} = require("../../controllers/dashboard/admin/dashboardStats");
+const { getAllTenants } = require("../../controllers/dashboard/admin/getAllTenants");
 const {
   getPendingUsers,
-} = require("../../controllers/dashboard/getPendingUsers");
-const { removeTenant } = require("../../controllers/dashboard/removeTenant");
+} = require("../../controllers/dashboard/admin/getPendingUsers");
+const { removeTenant } = require("../../controllers/dashboard/admin/removeTenant");
 const {
   toggleTenantActive,
-} = require("../../controllers/dashboard/toggleTenantActive");
+} = require("../../controllers/dashboard/admin/toggleTenantActive");
 const {
   updateApprovalStatus,
-} = require("../../controllers/dashboard/updateApprovalStatus");
+} = require("../../controllers/dashboard/admin/updateApprovalStatus");
 const {
   getTenantDashboard,
-} = require("../../controllers/dashboard/tenatDashboard");
+} = require("../../controllers/dashboard/tenant/dashboardSummary");
 
 // ----------middlewares
 const { adminOnly } = require("../../middlewares/adminOnly");
-const { authMiddleware } = require("../../middlewares/authMiddleware");
 const { requireApproved } = require("../../middlewares/requireApproved");
 
 // --------admin dashboard
@@ -34,6 +33,6 @@ router.patch("/tenants/:id/toggle-active", adminOnly, toggleTenantActive);
 router.patch("/tenants/:id/approval", adminOnly, updateApprovalStatus);
 
 // ---------tenant dashboard
-router.get("/tenant",  authMiddleware, requireApproved, getTenantDashboard);
+router.get("/tenant", requireApproved, getTenantDashboard);
 
 module.exports = router;

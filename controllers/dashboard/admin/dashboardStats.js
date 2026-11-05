@@ -1,9 +1,9 @@
-const { asyncHandler } = require("../../middlewares/asyncHandler");
-const authSchema = require("../../models/authSchema");
-const unitSchema = require("../../models/unitSchema");
-const paymentSchema = require("../../models/paymentSchema");
-const maintenanceSchema = require("../../models/maintenanceSchema");
-const { getCurrentMonth } = require("../../helpers/month");
+const { asyncHandler } = require("../../../middlewares/asyncHandler");
+const authSchema = require("../../../models/authSchema");
+const unitSchema = require("../../../models/unitSchema");
+const paymentSchema = require("../../../models/paymentSchema");
+const maintenanceSchema = require("../../../models/maintenanceSchema");
+const { getCurrentMonth } = require("../../../helpers/month");
 
 
 const getAdminDashboardStats = asyncHandler(async (req, res) => {

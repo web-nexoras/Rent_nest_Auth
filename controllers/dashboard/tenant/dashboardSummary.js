@@ -1,8 +1,8 @@
-const authSchema = require("../../models/authSchema");
-const paymentSchema = require("../../models/paymentSchema");
-const maintenanceSchema = require("../../models/maintenanceSchema");
-const { asyncHandler } = require("../../middlewares/asyncHandler");
-const { getCurrentMonth } = require("../../helpers/month");
+const authSchema = require("../../../models/authSchema");
+const paymentSchema = require("../../../models/paymentSchema");
+const maintenanceSchema = require("../../../models/maintenanceSchema");
+const { asyncHandler } = require("../../../middlewares/asyncHandler");
+const { getCurrentMonth } = require("../../../helpers/month");
 
 // Tenant only.
 const getTenantDashboard = asyncHandler(async (req, res) => {

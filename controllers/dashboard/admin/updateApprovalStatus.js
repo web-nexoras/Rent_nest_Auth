@@ -1,7 +1,7 @@
 const mongoose = require("mongoose");
-const authSchema = require("../../models/authSchema");
-const unitSchema = require("../../models/unitSchema");
-const { asyncHandler } = require("../../middlewares/asyncHandler");
+const authSchema = require("../../../models/authSchema");
+const unitSchema = require("../../../models/unitSchema");
+const { asyncHandler } = require("../../../middlewares/asyncHandler");
 
 const updateApprovalStatus = asyncHandler(async (req, res) => {
   const { id } = req.params;

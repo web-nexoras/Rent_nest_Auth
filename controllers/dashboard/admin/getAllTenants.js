@@ -1,6 +1,6 @@
-const { asyncHandler } = require("../../middlewares/asyncHandler");
-const authSchema = require("../../models/authSchema");
-const { parsePagination } = require("../../helpers/pagination");
+const { asyncHandler } = require("../../../middlewares/asyncHandler");
+const authSchema = require("../../../models/authSchema");
+const { parsePagination } = require("../../../helpers/pagination");
 
 const getAllTenants = asyncHandler(async (req, res) => {
   const { status, search } = req.query;

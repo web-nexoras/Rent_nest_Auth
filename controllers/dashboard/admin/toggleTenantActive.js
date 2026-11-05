@@ -1,6 +1,6 @@
-const { asyncHandler } = require("../../middlewares/asyncHandler");
+const { asyncHandler } = require("../../../middlewares/asyncHandler");
 const mongoose = require("mongoose");
-const authSchema = require("../../models/authSchema");
+const authSchema = require("../../../models/authSchema");
 
 const toggleTenantActive = asyncHandler(async (req, res) => {
   const { id } = req.params;

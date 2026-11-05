@@ -16,15 +16,24 @@ const mailSender = async ({ email, subject, otp, resetLink }) => {
     from: `"Rent Nest" <${process.env.EMAIL_USER}>`,
     to: email,
     subject,
-    html: emailTemp({
-      otp,
-      resetLink,
-    }),
+    html: emailTemp({ otp, resetLink }),
   });
 
   console.log(`Email sent successfully to ${email}`);
 };
 
+const sendNoticeEmail = async ({ email, subject, title, message, details }) => {
+  if (!process.env.EMAIL_USER || !process.env.EMAIL_PASS) return false;
+  await transporter.sendMail({
+    from: `"Rent Nest" <${process.env.EMAIL_USER}>`,
+    to: email,
+    subject,
+    html: emailTemp({ title, message, details }),
+  });
+  return true;
+};
+
 module.exports = {
   mailSender,
+  sendNoticeEmail,
 };

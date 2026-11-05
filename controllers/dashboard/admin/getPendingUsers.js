@@ -1,5 +1,5 @@
-const { asyncHandler } = require("../../middlewares/asyncHandler");
-const authSchema = require("../../models/authSchema");
+const { asyncHandler } = require("../../../middlewares/asyncHandler");
+const authSchema = require("../../../models/authSchema");
 
 const getPendingUsers = asyncHandler(async (req, res) => {
   const pendingUsers = await authSchema
