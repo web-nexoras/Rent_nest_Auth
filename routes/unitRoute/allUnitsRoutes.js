@@ -3,14 +3,14 @@ const router = express.Router();
 const { imageUpload } = require("../../helpers/upload");
 
 // -------controlllers
-const { createUnit } = require("../../controllers/unit/createUnit");
-const { getAllUnits } = require("../../controllers/unit/getAllUnits");
+const { createUnit } = require("../../controllers/dashboard/admin/units/createUnit");
+const { getAllUnits } = require("../../controllers/dashboard/admin/units/getAllUnits");
 const { getSingleUnit } = require("../../controllers/unit/getSingleUnit");
-const { deleteUnit } = require("../../controllers/unit/deleteUnit");
-const { updateUnit } = require("../../controllers/unit/updateUnit");
-const { assignTenant } = require("../../controllers/unit/assignTenant");
-const { unassignTenant } = require("../../controllers/unit/unassignTenant");
-const { getMyUnit } = require("../../controllers/unit/getMyUnit");
+const { deleteUnit } = require("../../controllers/dashboard/admin/units/deleteUnit");
+const { updateUnit } = require("../../controllers/dashboard/admin/units/updateUnit");
+const { assignTenant } = require("../../controllers/dashboard/admin/units/assignTenant");
+const { unassignTenant } = require("../../controllers/dashboard/admin/units/unassignTenant");
+const { getMyUnit } = require("../../controllers/dashboard/tenant/units/getMyUnit");
 
 // --------middleweres
 const { adminOnly } = require("../../middlewares/adminOnly");

@@ -1,5 +1,5 @@
-const { asyncHandler } = require("../../middlewares/asyncHandler");
-const maintenanceSchema = require("../../models/maintenanceSchema");
+const { asyncHandler } = require("../../../../middlewares/asyncHandler");
+const maintenanceSchema = require("../../../../models/maintenanceSchema");
 
 const getMyMaintenance = asyncHandler(async (req, res) => {
   const maintenanceRequests = await maintenanceSchema

@@ -1,5 +1,5 @@
-const authSchema = require("../../models/authSchema");
-const { asyncHandler } = require("../../middlewares/asyncHandler");
+const authSchema = require("../../../../models/authSchema");
+const { asyncHandler } = require("../../../../middlewares/asyncHandler");
 
 const getMyUnit = asyncHandler(async (req, res) => {
   if (req.user.role !== "tenant") {

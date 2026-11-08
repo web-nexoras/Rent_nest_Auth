@@ -1,5 +1,5 @@
-const { asyncHandler } = require("../../middlewares/asyncHandler");
-const paymentSchema = require("../../models/paymentSchema");
+const { asyncHandler } = require("../../../../middlewares/asyncHandler");
+const paymentSchema = require("../../../../models/paymentSchema");
 
 const STATUSES = ["pending", "verified", "rejected"];
 

@@ -8,7 +8,7 @@ const {
 } = require("../../controllers/maintenance/createMaintenance");
 const {
   getMyMaintenance,
-} = require("../../controllers/maintenance/getMyMaintenance");
+} = require("../../controllers/dashboard/tenant/maintenance/getMyMaintenance");
 const {
   getAllMaintenance,
 } = require("../../controllers/maintenance/getAllMaintenance");

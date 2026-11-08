@@ -1,7 +1,7 @@
 const mongoose = require("mongoose");
-const unitSchema = require("../../models/unitSchema");
-const { asyncHandler } = require("../../middlewares/asyncHandler");
-const { destroyFromCloudinary } = require("../../helpers/cloudinary/cloudinaryUtils");
+const unitSchema = require("../../../../models/unitSchema");
+const { asyncHandler } = require("../../../../middlewares/asyncHandler");
+const { destroyFromCloudinary } = require("../../../../helpers/cloudinary/cloudinaryUtils");
 
 const deleteUnit = asyncHandler(async (req, res) => {
   const { id } = req.params;

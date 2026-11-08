@@ -1,6 +1,6 @@
-const { asyncHandler } = require("../../middlewares/asyncHandler");
-const unitSchema = require("../../models/unitSchema");
-const authSchema = require("../../models/authSchema");
+const { asyncHandler } = require("../../../../middlewares/asyncHandler");
+const unitSchema = require("../../../../models/unitSchema");
+const authSchema = require("../../../../models/authSchema");
 const mongoose = require("mongoose");
 
 const unassignTenant = asyncHandler(async (req, res) => {
