@@ -1,9 +1,9 @@
-const { asyncHandler } = require("../../middlewares/asyncHandler");
+const { asyncHandler } = require("../../../../middlewares/asyncHandler");
 const mongoose = require("mongoose");
-const paymentSchema = require("../../models/paymentSchema");
-const authSchema = require("../../models/authSchema");
-const unitSchema = require("../../models/unitSchema");
-const { sendNoticeEmail } = require("../../helpers/email/mailService");
+const paymentSchema = require("../../../../models/paymentSchema");
+const authSchema = require("../../../../models/authSchema");
+const unitSchema = require("../../../../models/unitSchema");
+const { sendNoticeEmail } = require("../../../../helpers/email/mailService");
 
 const verifyPayment = asyncHandler(async (req, res) => {
   const { id } = req.params;

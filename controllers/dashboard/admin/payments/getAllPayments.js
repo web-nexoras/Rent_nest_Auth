@@ -1,7 +1,7 @@
-const { asyncHandler } = require("../../middlewares/asyncHandler");
-const paymentSchema = require("../../models/paymentSchema");
-const { parsePagination } = require("../../helpers/pagination");
-const { isValidMonth } = require("../../helpers/month");
+const { asyncHandler } = require("../../../../middlewares/asyncHandler");
+const paymentSchema = require("../../../../models/paymentSchema");
+const { parsePagination } = require("../../../../helpers/pagination");
+const { isValidMonth } = require("../../../../helpers/month");
 
 const getAllPayments = asyncHandler(async (req, res) => {
   const { status, month } = req.query;

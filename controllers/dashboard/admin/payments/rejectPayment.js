@@ -1,6 +1,6 @@
-const { asyncHandler } = require("../../middlewares/asyncHandler");
+const { asyncHandler } = require("../../../../middlewares/asyncHandler");
 const mongoose = require("mongoose");
-const paymentSchema = require("../../models/paymentSchema");
+const paymentSchema = require("../../../../models/paymentSchema");
 
 const rejectPayment = asyncHandler(async (req, res) => {
   const { id } = req.params;

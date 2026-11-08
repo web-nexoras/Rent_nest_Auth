@@ -4,12 +4,12 @@ const router = express.Router();
 // ----------controllers
 const { submitPayment } = require("../../controllers/payments/submitPayment");
 const { getMyPayments } = require("../../controllers/payments/getMyPayments");
-const { getAllPayments } = require("../../controllers/payments/getAllPayments");
-const { verifyPayment } = require("../../controllers/payments/verifyPayment");
-const { rejectPayment } = require("../../controllers/payments/rejectPayment");
-const { getOverdueTenants } = require("../../controllers/payments/getOverdueTenants");
+const { getAllPayments } = require("../../controllers/dashboard/admin/payments/getAllPayments");
+const { verifyPayment } = require("../../controllers/dashboard/admin/payments/verifyPayment");
+const { rejectPayment } = require("../../controllers/dashboard/admin/payments/rejectPayment");
+const { getOverdueTenants } = require("../../controllers/dashboard/admin/payments/getOverdueTenants");
 const { getMyReceipt } = require("../../controllers/payments/getMyReceipt");
-const { getMonthlyReport } = require("../../controllers/payments/getMonthlyReport");
+const { getMonthlyReport } = require("../../controllers/dashboard/admin/payments/getMonthlyReport");
 
 
 // ----------middlewares

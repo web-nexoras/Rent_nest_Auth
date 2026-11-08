@@ -1,7 +1,7 @@
-const { asyncHandler } = require("../../middlewares/asyncHandler");
-const paymentSchema = require("../../models/paymentSchema");
-const authSchema = require("../../models/authSchema");
-const { getCurrentMonth, isValidMonth } = require("../../helpers/month");
+const { asyncHandler } = require("../../../../middlewares/asyncHandler");
+const paymentSchema = require("../../../../models/paymentSchema");
+const authSchema = require("../../../../models/authSchema");
+const { getCurrentMonth, isValidMonth } = require("../../../../helpers/month");
 
 const getMonthlyReport = asyncHandler(async (req, res) => {
   const month = req.query.month || getCurrentMonth();
