@@ -25,7 +25,7 @@ const maintenanceSchema = new mongoose.Schema(
     images: [
       {
         type: String,
-        trim: true
+        trim: true,
       },
     ],
     status: {

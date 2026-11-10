@@ -1,12 +1,11 @@
 const authSchema = require("../../../models/authSchema");
 const paymentSchema = require("../../../models/paymentSchema");
 const maintenanceSchema = require("../../../models/maintenanceSchema");
-const noticeSchema = require("../../../models/noticeShcema");
+const noticeSchema = require("../../../models/noticeSchema");
 const rentReminderSchema = require("../../../models/rentReminderSchema");
 const { asyncHandler } = require("../../../middlewares/asyncHandler");
 const { getCurrentMonth } = require("../../../helpers/month");
 
-// Tenant only.
 const getTenantDashboard = asyncHandler(async (req, res) => {
   const currentMonth = getCurrentMonth();
 
@@ -61,6 +60,7 @@ const getTenantDashboard = asyncHandler(async (req, res) => {
     }),
   ]);
 
+  // Compute due date and 10th-of-month overdue deadline
   const now = new Date();
   const [year, monthNumber] = currentMonth.split("-").map(Number);
   const monthLastDay = new Date(year, monthNumber, 0).getDate();

@@ -12,7 +12,7 @@ const {
   refreshCookieConfig,
 } = require("../../helpers/auth/cookies");
 
-// ---- Signin Controller (supports Email OR Phone Number)
+// Sign in using either email or phone number
 const signin = asyncHandler(async (req, res) => {
   const { identifier, email, phone, password } = req.body;
   const rawLogin = String(identifier || email || phone || "").trim();
@@ -31,6 +31,7 @@ const signin = asyncHandler(async (req, res) => {
     });
   }
 
+  // Detect email vs phone login and build lookup query
   const looksLikeEmail = rawLogin.includes("@");
   let query;
 

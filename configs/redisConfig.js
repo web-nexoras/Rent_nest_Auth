@@ -1,11 +1,6 @@
 const Redis = require("ioredis");
 
-/**
- * High-performance Redis client with automatic in-memory fallback.
- * If REDIS_URL is configured and reachable, uses ioredis.
- * Otherwise transparently falls back to an ultra-fast Map with TTL support
- * so the API never blocks or crashes when a local Redis daemon isn't running.
- */
+// In-memory TTL store used when external Redis is unavailable
 class MemoryRedisStore {
   constructor() {
     this.store = new Map();

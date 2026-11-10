@@ -1,7 +1,4 @@
-/**
- * SSLCommerz Gateway Helper (Sandbox & Live).
- * Uses native fetch + URLSearchParams (Node 18+) so no external SDK dependency is required.
- */
+// SSLCommerz gateway session and payment validation helper
 const getSslBaseUrl = () => {
   const isLive = String(process.env.SSL_IS_LIVE).toLowerCase() === "true";
   return isLive
@@ -34,8 +31,7 @@ const initSslSession = async (payload) => {
     body: params.toString(),
   });
 
-  const data = await response.json();
-  return data;
+  return response.json();
 };
 
 const validateSslPayment = async (valId) => {

@@ -1,7 +1,6 @@
-const noticeSchema = require("../../models/noticeShcema");
+const noticeSchema = require("../../models/noticeSchema");
 const { asyncHandler } = require("../../middlewares/asyncHandler");
 
-// -------- Create Notice Controller
 const createNotice = asyncHandler(async (req, res) => {
   const { title, description } = req.body || {};
 
@@ -33,5 +32,5 @@ const createNotice = asyncHandler(async (req, res) => {
 });
 
 module.exports = {
-  createNotice
+  createNotice,
 };

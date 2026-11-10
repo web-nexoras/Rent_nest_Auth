@@ -9,7 +9,6 @@ const {
 const { mailSender } = require("../../helpers/email/mailService");
 const authSchema = require("../../models/authSchema");
 
-// -----------signup controller
 const signup = asyncHandler(async (req, res) => {
   const { name, email, phone, password } = req.body;
 
@@ -50,6 +49,7 @@ const signup = asyncHandler(async (req, res) => {
 
   const normalizedPhone = normalizePhone(phone);
 
+  // Prevent duplicate registration by email or phone
   const existingUser = await authSchema.findOne({
     $or: [
       { email: email.trim().toLowerCase() },
@@ -67,6 +67,7 @@ const signup = asyncHandler(async (req, res) => {
     });
   }
 
+  // Store SHA-256 hashed OTP with 5-minute expiry
   const otp = generateOTP();
 
   const user = await authSchema.create({

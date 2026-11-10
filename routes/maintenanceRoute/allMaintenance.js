@@ -1,14 +1,12 @@
 const express = require("express");
 const router = express.Router();
 const { imageUpload } = require("../../helpers/upload");
-
-// ----------controllers
 const {
   createMaintenance,
 } = require("../../controllers/maintenance/createMaintenance");
 const {
   getMyMaintenance,
-} = require("../../controllers/dashboard/tenant/maintenance/getMyMaintenance");
+} = require("../../controllers/maintenance/getMyMaintenance");
 const {
   getAllMaintenance,
 } = require("../../controllers/maintenance/getAllMaintenance");
@@ -22,7 +20,6 @@ const {
   updateMaintenanceStatus,
 } = require("../../controllers/maintenance/updateMaintenance");
 
-// ----------middlewares
 const { adminOnly } = require("../../middlewares/adminOnly");
 const { requireApproved } = require("../../middlewares/requireApproved");
 const { cacheGet, clearCacheOnSuccess } = require("../../middlewares/redisCache");

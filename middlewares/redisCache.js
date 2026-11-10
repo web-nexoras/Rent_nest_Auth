@@ -1,9 +1,6 @@
 const { getRedisClient, getRedisStatus } = require("../configs/redisConfig");
 
-/**
- * Read-through Redis caching middleware for GET endpoints.
- * Caches JSON responses per namespace + user scope + query string.
- */
+// Read-through cache middleware for GET requests
 const cacheGet = (namespace, ttlSeconds = 30) => {
   return async (req, res, next) => {
     if (req.method !== "GET") return next();
@@ -20,7 +17,7 @@ const cacheGet = (namespace, ttlSeconds = 30) => {
         return res.status(200).json(JSON.parse(cached));
       }
     } catch (error) {
-      // Proceed to controller on cache read error
+      // Ignore cache read errors
     }
 
     const originalJson = res.json.bind(res);
@@ -39,9 +36,7 @@ const cacheGet = (namespace, ttlSeconds = 30) => {
   };
 };
 
-/**
- * Invalidates one or more Redis cache namespaces (or all `rn:*` keys).
- */
+// Clear cached keys by namespace
 const invalidateCache = async (...namespaces) => {
   const client = getRedisClient();
   try {
@@ -55,14 +50,11 @@ const invalidateCache = async (...namespaces) => {
       if (keys.length) await client.del(keys);
     }
   } catch {
-    // Non-fatal
+    // Ignore cache invalidation errors
   }
 };
 
-/**
- * Express middleware that automatically invalidates the specified cache namespaces
- * whenever a mutating request (POST/PUT/PATCH/DELETE) succeeds.
- */
+// Auto-clear related cache namespaces after successful write operations
 const clearCacheOnSuccess = (...namespaces) => {
   return (req, res, next) => {
     res.on("finish", () => {

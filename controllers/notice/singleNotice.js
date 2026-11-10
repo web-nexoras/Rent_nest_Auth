@@ -1,8 +1,7 @@
-const noticeSchema = require("../../models/noticeShcema");
+const noticeSchema = require("../../models/noticeSchema");
 const { asyncHandler } = require("../../middlewares/asyncHandler");
 const mongoose = require("mongoose");
 
-// -------- Get Single Notice Controller
 const getNotice = asyncHandler(async (req, res) => {
   const { id } = req.params;
 

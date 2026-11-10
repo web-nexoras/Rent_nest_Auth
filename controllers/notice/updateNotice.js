@@ -1,5 +1,5 @@
 const mongoose = require("mongoose");
-const noticeSchema = require("../../models/noticeShcema");
+const noticeSchema = require("../../models/noticeSchema");
 const { asyncHandler } = require("../../middlewares/asyncHandler");
 
 const updateNotice = asyncHandler(async (req, res) => {

@@ -2,8 +2,6 @@ const express = require("express");
 const router = express.Router();
 const { imageUpload } = require("../../helpers/upload");
 const { authLimiter } = require("../../middlewares/rateLimit");
-
-// ---------controllers
 const { signup } = require("../../controllers/auth/signUp");
 const { verifyOtp } = require("../../controllers/auth/verifyOtp");
 const { resendOtp } = require("../../controllers/auth/resendOtp");
@@ -12,12 +10,8 @@ const { forgotPassword } = require("../../controllers/auth/forgetPass");
 const { resetPassword } = require("../../controllers/auth/resetPass");
 const { logOut } = require("../../controllers/auth/logOut");
 const { refreshToken } = require("../../controllers/auth/refreshToken");
-
-// ------------profile
-const { getProfile } = require("../../controllers/auth/gerProfile");
+const { getProfile } = require("../../controllers/auth/getProfile");
 const { updateProfile } = require("../../controllers/auth/updateProfile");
-
-// -----------middleware
 const { authMiddleware } = require("../../middlewares/authMiddleware");
 const { clearCacheOnSuccess } = require("../../middlewares/redisCache");
 

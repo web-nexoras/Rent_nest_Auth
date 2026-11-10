@@ -1,8 +1,7 @@
-const noticeShcema = require("../../models/noticeShcema");
+const noticeSchema = require("../../models/noticeSchema");
 const { asyncHandler } = require("../../middlewares/asyncHandler");
 const { parsePagination } = require("../../helpers/pagination");
 
-// -------- Get All Notices Controller
 const getAllNotices = asyncHandler(async (req, res) => {
   const { page, limit, skip } = parsePagination(req.query);
   const filter = {};
@@ -15,9 +14,9 @@ const getAllNotices = asyncHandler(async (req, res) => {
     ];
   }
 
-  const total = await noticeShcema.countDocuments(filter);
+  const total = await noticeSchema.countDocuments(filter);
 
-  const notices = await noticeShcema
+  const notices = await noticeSchema
     .find(filter)
     .populate("createdBy", "name email role")
     .sort({ createdAt: -1 })

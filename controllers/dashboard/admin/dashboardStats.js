@@ -5,10 +5,12 @@ const paymentSchema = require("../../../models/paymentSchema");
 const maintenanceSchema = require("../../../models/maintenanceSchema");
 const { getCurrentMonth } = require("../../../helpers/month");
 
+// Aggregate building occupancy, monthly revenue, and 10th-of-month overdue metrics
 const getAdminDashboardStats = asyncHandler(async (req, res) => {
   const currentMonth = getCurrentMonth();
   const now = new Date();
   const dayOfMonth = now.getDate();
+  // Unpaid rent becomes strictly overdue after the 10th of the month
   const isPast10th = dayOfMonth > 10;
 
   const [

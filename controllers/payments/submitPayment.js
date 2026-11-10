@@ -15,11 +15,7 @@ const VALID_METHODS = [
   "Cash",
 ];
 
-/**
- * Submit Rent Payment (Manual / Reference submission).
- * STRICT RULE: Rent amount is strictly locked to the assigned unit's `rentAmount`.
- * Tenants cannot submit an arbitrary or modified rent amount.
- */
+// Submit manual rent payment locked to the assigned unit's fixed rentAmount
 const submitPayment = asyncHandler(async (req, res) => {
   const { month, transactionId, paymentMethod } = req.body;
 
@@ -54,7 +50,7 @@ const submitPayment = asyncHandler(async (req, res) => {
     });
   }
 
-  // Strictly enforce unit's fixed rent amount
+  // Enforce fixed unit rent amount (ignore any client-supplied amount)
   const fixedAmount = Number(unit.rentAmount);
   if (!Number.isFinite(fixedAmount) || fixedAmount <= 0) {
     return res.status(400).json({
@@ -63,7 +59,6 @@ const submitPayment = asyncHandler(async (req, res) => {
     });
   }
 
-  // Validate month
   if (!month || !isValidMonth(month)) {
     return res.status(400).json({
       success: false,
@@ -92,13 +87,13 @@ const submitPayment = asyncHandler(async (req, res) => {
     });
   }
 
-  // Check duplicate payment
   const existingPayment = await paymentSchema.findOne({
     tenant: tenant._id,
     unit: unit._id,
     month,
   });
 
+  // Allow resubmission if previous payment for this month was rejected
   if (existingPayment && existingPayment.status === "rejected") {
     existingPayment.amount = fixedAmount;
     existingPayment.transactionId = cleanTransactionId;

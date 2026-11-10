@@ -55,7 +55,7 @@ const unitSchema = new mongoose.Schema(
   { timestamps: true },
 );
 
-// Keep status in sync with assignedTenant automatically
+// Sync unit occupancy status with assignedTenant
 unitSchema.pre("save", function () {
   this.status = this.assignedTenant ? "occupied" : "vacant";
 });

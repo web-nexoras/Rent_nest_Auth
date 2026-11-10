@@ -6,11 +6,7 @@ const { getCurrentMonth, isValidMonth } = require("../../../helpers/month");
 const { initSslSession } = require("../../../helpers/sslcommerz/sslCommerzService");
 const { invalidateCache } = require("../../../middlewares/redisCache");
 
-/**
- * POST /api/v1/payments/ssl/init
- * Initializes an SSLCommerz payment session for the tenant's assigned unit.
- * Strictly locks the payment amount to `unit.rentAmount`.
- */
+// Initialize SSLCommerz payment session locked to unit.rentAmount
 const initSslPayment = asyncHandler(async (req, res) => {
   const month = req.body?.month || getCurrentMonth();
 
@@ -52,7 +48,6 @@ const initSslPayment = asyncHandler(async (req, res) => {
     });
   }
 
-  // Check if already verified for this month
   const existing = await paymentSchema.findOne({
     tenant: tenant._id,
     unit: unit._id,
@@ -82,7 +77,7 @@ const initSslPayment = asyncHandler(async (req, res) => {
     process.env.SSL_CANCEL_URL ||
     `${serverOrigin}${baseUrl}/payments/subscription/cancel`;
 
-  // Create or update pending payment record prior to redirecting to SSLCommerz
+  // Create or update pending payment record before redirecting to gateway
   let payment = existing;
   if (payment) {
     payment.amount = fixedAmount;
@@ -144,7 +139,7 @@ const initSslPayment = asyncHandler(async (req, res) => {
       });
     }
 
-    // If sandbox credentials are rejected or offline, provide a simulated sandbox checkout URL fallback
+    // Fallback to built-in interactive sandbox checkout page if external sandbox is unreachable
     const fallbackUrl = `${serverOrigin}${baseUrl}/payments/ssl/sandbox-checkout?tran_id=${encodeURIComponent(tranId)}&amount=${fixedAmount}&unit=${encodeURIComponent(unit.unitNumber)}&month=${encodeURIComponent(month)}`;
     return res.status(200).json({
       success: true,

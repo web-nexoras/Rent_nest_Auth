@@ -1,7 +1,4 @@
-/**
- * Standard 48-Unit Building Blueprint (Floors A through L, 4 units per floor).
- * Designed for commercial SaaS realism with 4 distinct apartment tiers per floor.
- */
+// 48-unit building blueprint across Floors A-L (4 apartment tiers per floor)
 const FLOORS = [
   { letter: "A", level: 1 },
   { letter: "B", level: 2 },
@@ -60,7 +57,7 @@ function generateStandardBuildingUnits() {
   const units = [];
 
   for (const { letter, level } of FLOORS) {
-    // Higher floors command a slight view premium on top floors (Floors I-L)
+    // Upper-floor view premium for Floors E-H (+500) and I-L (+1000)
     const floorPremium = level >= 9 ? 1000 : level >= 5 ? 500 : 0;
 
     for (const tier of UNIT_TIERS) {

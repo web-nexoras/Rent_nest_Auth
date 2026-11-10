@@ -1,20 +1,17 @@
 const express = require("express");
 const router = express.Router();
 const { imageUpload } = require("../../helpers/upload");
+const { createUnit } = require("../../controllers/units/createUnit");
+const { getAllUnits } = require("../../controllers/units/getAllUnits");
+const { getSingleUnit } = require("../../controllers/units/getSingleUnit");
+const { deleteUnit } = require("../../controllers/units/deleteUnit");
+const { updateUnit } = require("../../controllers/units/updateUnit");
+const { assignTenant } = require("../../controllers/units/assignTenant");
+const { unassignTenant } = require("../../controllers/units/unassignTenant");
+const { seedBuildingUnits } = require("../../controllers/units/seedBuildingUnits");
+const { getUnitStatusMatrix } = require("../../controllers/units/getUnitStatusMatrix");
+const { getMyUnit } = require("../../controllers/units/getMyUnit");
 
-// -------controllers
-const { createUnit } = require("../../controllers/dashboard/admin/units/createUnit");
-const { getAllUnits } = require("../../controllers/dashboard/admin/units/getAllUnits");
-const { getSingleUnit } = require("../../controllers/unit/getSingleUnit");
-const { deleteUnit } = require("../../controllers/dashboard/admin/units/deleteUnit");
-const { updateUnit } = require("../../controllers/dashboard/admin/units/updateUnit");
-const { assignTenant } = require("../../controllers/dashboard/admin/units/assignTenant");
-const { unassignTenant } = require("../../controllers/dashboard/admin/units/unassignTenant");
-const { seedBuildingUnits } = require("../../controllers/dashboard/admin/units/seedBuildingUnits");
-const { getUnitStatusMatrix } = require("../../controllers/dashboard/admin/units/getUnitStatusMatrix");
-const { getMyUnit } = require("../../controllers/dashboard/tenant/units/getMyUnit");
-
-// --------middlewares
 const { adminOnly } = require("../../middlewares/adminOnly");
 const { requireApproved } = require("../../middlewares/requireApproved");
 const { cacheGet, clearCacheOnSuccess } = require("../../middlewares/redisCache");

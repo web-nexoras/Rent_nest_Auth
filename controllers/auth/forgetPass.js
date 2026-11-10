@@ -1,16 +1,12 @@
 const authSchema = require("../../models/authSchema");
-
 const {
   isValidEmail,
   generateResetToken,
   hashToken,
 } = require("../../helpers/auth/authUtils");
-
 const { mailSender } = require("../../helpers/email/mailService");
-
 const { asyncHandler } = require("../../middlewares/asyncHandler");
 
-// -------- Forgot Password Controller
 const forgotPassword = asyncHandler(async (req, res) => {
   const { email } = req.body;
 
@@ -32,7 +28,7 @@ const forgotPassword = asyncHandler(async (req, res) => {
     email: email.toLowerCase(),
   });
 
-  // Don't reveal whether the email exists
+  // Return generic success response to prevent email enumeration
   if (!user) {
     return res.status(200).json({
       success: true,

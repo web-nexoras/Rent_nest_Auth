@@ -46,7 +46,7 @@ app.use(errorHandler);
 dbConfig().then(async (connected) => {
   if (!connected) return;
 
-  // Auto-initialize the 48 standard building units (Floors A–L) if the database has 0 units
+  // Auto-seed 48 building units (A-101 to L-1204) if database is empty
   try {
     const unitCount = await unitSchema.countDocuments({});
     if (unitCount === 0) {
@@ -58,6 +58,7 @@ dbConfig().then(async (connected) => {
     console.error("Building unit auto-seed check failed:", err.message);
   }
 
+  // Daily scheduler for due and 10th-of-month overdue rent reminders
   let lastRunDate = "";
   const reminderHour = Number(process.env.RENT_REMINDER_HOUR ?? 9);
   setInterval(() => {

@@ -28,11 +28,7 @@ const findPaymentFromCallback = async (data = {}) => {
   return null;
 };
 
-/**
- * Handles SSLCommerz Success Callback (POST or GET).
- * Auto-verifies the payment, stores gateway metadata, sends receipt email,
- * and redirects the tenant back to `/tenant/payments?ssl=success&receipt=<id>`.
- */
+// Auto-verify payment on SSLCommerz success callback and redirect to tenant receipt
 const sslPaymentSuccess = asyncHandler(async (req, res) => {
   const data = { ...req.query, ...req.body };
   const payment = await findPaymentFromCallback(data);
@@ -93,9 +89,6 @@ const sslPaymentSuccess = asyncHandler(async (req, res) => {
   );
 });
 
-/**
- * Handles SSLCommerz Fail Callback
- */
 const sslPaymentFail = asyncHandler(async (req, res) => {
   const data = { ...req.query, ...req.body };
   const payment = await findPaymentFromCallback(data);
@@ -110,9 +103,6 @@ const sslPaymentFail = asyncHandler(async (req, res) => {
   return res.redirect(`${clientUrl}/tenant/payments?ssl=failed`);
 });
 
-/**
- * Handles SSLCommerz Cancel Callback
- */
 const sslPaymentCancel = asyncHandler(async (req, res) => {
   const data = { ...req.query, ...req.body };
   const payment = await findPaymentFromCallback(data);
@@ -126,10 +116,7 @@ const sslPaymentCancel = asyncHandler(async (req, res) => {
   return res.redirect(`${clientUrl}/tenant/payments?ssl=cancelled`);
 });
 
-/**
- * Built-in Interactive SSLCommerz Sandbox Checkout Page
- * Used when local sandbox environment needs an instant interactive gateway screen.
- */
+// Interactive sandbox checkout page for local testing
 const renderSslSandboxCheckout = asyncHandler(async (req, res) => {
   const { tran_id = "", amount = "0", unit = "", month = "" } = req.query;
   const baseUrl = process.env.BASE_URL || "/api/v1";

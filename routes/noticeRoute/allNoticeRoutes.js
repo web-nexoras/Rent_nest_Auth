@@ -1,7 +1,6 @@
 const express = require("express");
 const router = express.Router();
 
-// ----------controllers
 const { createNotice } = require("../../controllers/notice/createNotice");
 const { getAllNotices } = require("../../controllers/notice/getAllNotices");
 const { getNotice } = require("../../controllers/notice/singleNotice");
@@ -10,7 +9,6 @@ const { updateNotice } = require("../../controllers/notice/updateNotice");
 const { addComment } = require("../../controllers/notice/addComment");
 const { deleteComment } = require("../../controllers/notice/deleteComment");
 
-// ----------middlewares
 const { adminOnly } = require("../../middlewares/adminOnly");
 const { requireApproved } = require("../../middlewares/requireApproved");
 const { cacheGet, clearCacheOnSuccess } = require("../../middlewares/redisCache");

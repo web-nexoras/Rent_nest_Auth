@@ -1,9 +1,7 @@
 const authSchema = require("../../models/authSchema");
-
 const { asyncHandler } = require("../../middlewares/asyncHandler");
 const { hashToken } = require("../../helpers/auth/authUtils");
 
-// -------- Reset Password Controller
 const resetPassword = asyncHandler(async (req, res) => {
   const { token } = req.params;
   const { password } = req.body;
@@ -43,10 +41,7 @@ const resetPassword = asyncHandler(async (req, res) => {
     });
   }
 
-  // Update password
   user.password = password;
-
-  // Clear reset token
   user.resetPasswordToken = null;
   user.resetPasswordExpiry = null;
 

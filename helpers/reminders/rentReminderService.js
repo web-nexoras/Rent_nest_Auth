@@ -11,14 +11,7 @@ const getTodayKey = (now = new Date()) =>
     now.getDate(),
   ).padStart(2, "0")}`;
 
-/**
- * Sends a rent reminder to a single tenant for the given month.
- * Stage rules:
- * - If forceManual=true (Admin clicked "Send Reminder"): sends immediately and increments reminderCount.
- * - Automatic run:
- *   - Day > rentDueDay and Day < 10: sends 1 initial "due_alert" if not sent yet.
- *   - Day >= 10 (10th and after): sends "overdue_10th" reminder once per calendar day until paid.
- */
+// 2-stage reminder logic: initial due alert after rentDueDay, daily overdue notice from the 10th onward
 const sendSingleTenantReminder = async ({
   tenant,
   unit,
@@ -44,6 +37,7 @@ const sendSingleTenantReminder = async ({
 
   let record = await rentReminderSchema.findOne({ tenant: tenant._id, month });
 
+  // Prevent duplicate automatic alerts on the same stage/day
   if (!forceManual && record) {
     if (isInitialAlertStage && record.firstAlertSentAt) {
       return { sent: false, reason: "Initial due alert already sent" };
@@ -117,6 +111,7 @@ const sendSingleTenantReminder = async ({
   return { sent: true, reminder: record };
 };
 
+// Send reminders to all active tenants who have not paid for the target month
 const sendMonthlyRentReminders = async ({ forceManual = false, month = getCurrentMonth(), customNote = "" } = {}) => {
   const tenants = await authSchema
     .find({

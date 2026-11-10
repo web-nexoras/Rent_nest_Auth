@@ -1,7 +1,6 @@
 const nodemailer = require("nodemailer");
-const {emailTemp}= require ('../../helpers/email/emailTemp.js')
+const { emailTemp } = require("../../helpers/email/emailTemp.js");
 
-// Create Transporter
 const transporter = nodemailer.createTransport({
   service: "gmail",
   auth: {
@@ -10,7 +9,6 @@ const transporter = nodemailer.createTransport({
   },
 });
 
-// Send Mail
 const mailSender = async ({ email, subject, otp, resetLink }) => {
   await transporter.sendMail({
     from: `"Rent Nest" <${process.env.EMAIL_USER}>`,

@@ -26,7 +26,7 @@ const rentReminderSchema = new mongoose.Schema(
       default: null,
     },
     lastOverdueSentDate: {
-      type: String, // YYYY-MM-DD so 10th+ daily reminders don't spam multiple times on the same day
+      type: String, // YYYY-MM-DD to prevent duplicate daily overdue emails
       default: null,
     },
     reminderCount: {
