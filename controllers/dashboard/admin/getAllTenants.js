@@ -10,7 +10,7 @@ const getAllTenants = asyncHandler(async (req, res) => {
     role: "tenant",
   };
 
-    if (status) {
+  if (status) {
     if (!["pending", "approved", "rejected"].includes(status)) {
       return res.status(400).json({
         success: false,
@@ -23,17 +23,21 @@ const getAllTenants = asyncHandler(async (req, res) => {
 
   if (typeof search === "string" && search.trim()) {
     const term = search.trim();
+    const escaped = term.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
     filter.$or = [
-      { name: { $regex: term.replace(/[.*+?^${}()|[\]\\]/g, "\\$&"), $options: "i" } },
-      { email: { $regex: term.replace(/[.*+?^${}()|[\]\\]/g, "\\$&"), $options: "i" } },
-      { phone: { $regex: term.replace(/[.*+?^${}()|[\]\\]/g, "\\$&"), $options: "i" } },
+      { name: { $regex: escaped, $options: "i" } },
+      { email: { $regex: escaped, $options: "i" } },
+      { phone: { $regex: escaped, $options: "i" } },
+      { nidNumber: { $regex: escaped, $options: "i" } },
     ];
   }
 
   const tenants = await authSchema
     .find(filter)
-    .select("name email phone approvalStatus isActive assignedUnit createdAt")
-    .populate("assignedUnit", "unitNumber floor")
+    .select(
+      "name email phone approvalStatus isActive isVerified assignedUnit nidNumber occupation presentAddress permanentAddress profileImage createdAt",
+    )
+    .populate("assignedUnit", "unitNumber floor rentAmount sizeSqft bedrooms")
     .sort({ createdAt: -1 })
     .skip(skip)
     .limit(limit);
@@ -50,5 +54,5 @@ const getAllTenants = asyncHandler(async (req, res) => {
 });
 
 module.exports = {
-  getAllTenants
+  getAllTenants,
 };

@@ -1,11 +1,11 @@
 const { asyncHandler } = require("../../middlewares/asyncHandler");
-
 const {
   generateOTP,
   isValidEmail,
+  isValidPhone,
+  normalizePhone,
   hashToken,
 } = require("../../helpers/auth/authUtils");
-
 const { mailSender } = require("../../helpers/email/mailService");
 const authSchema = require("../../models/authSchema");
 
@@ -30,37 +30,40 @@ const signup = asyncHandler(async (req, res) => {
   if (!isValidEmail(email)) {
     return res.status(400).json({
       success: false,
-      message: "Invalid email",
+      message: "Please provide a valid email address",
     });
   }
 
-  if (!phone) {
+  if (!phone || !isValidPhone(phone)) {
     return res.status(400).json({
       success: false,
-      message: "Phone number is required",
+      message: "Please provide a valid phone number (e.g. 017XXXXXXXX)",
     });
   }
 
-  if (!password) {
-    return res.status(400).json({
-      success: false,
-      message: "Password is required",
-    });
-  }
-
-  if (password.length < 6) {
+  if (!password || typeof password !== "string" || password.length < 6) {
     return res.status(400).json({
       success: false,
       message: "Password must be at least 6 characters",
     });
   }
 
-  const existingUser = await authSchema.findOne({ email: email.toLowerCase() });
+  const normalizedPhone = normalizePhone(phone);
+
+  const existingUser = await authSchema.findOne({
+    $or: [
+      { email: email.trim().toLowerCase() },
+      { phone: { $in: [phone.trim(), normalizedPhone] } },
+    ],
+  });
 
   if (existingUser) {
+    const isDuplicateEmail = existingUser.email === email.trim().toLowerCase();
     return res.status(409).json({
       success: false,
-      message: "User with this email already exists",
+      message: isDuplicateEmail
+        ? "User with this email already exists"
+        : "User with this phone number already exists",
     });
   }
 
@@ -68,8 +71,8 @@ const signup = asyncHandler(async (req, res) => {
 
   const user = await authSchema.create({
     name: name.trim(),
-    email,
-    phone: phone.trim(),
+    email: email.trim().toLowerCase(),
+    phone: normalizedPhone,
     password,
     otp: hashToken(otp),
     otpExpiry: new Date(Date.now() + 5 * 60 * 1000),
@@ -77,7 +80,7 @@ const signup = asyncHandler(async (req, res) => {
 
   try {
     await mailSender({
-      email,
+      email: user.email,
       subject: "Rent Nest - Email Verification OTP",
       otp,
     });

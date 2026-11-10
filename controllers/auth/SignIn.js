@@ -1,8 +1,9 @@
 const authSchema = require("../../models/authSchema");
-
 const { asyncHandler } = require("../../middlewares/asyncHandler");
-
 const {
+  isValidEmail,
+  isValidPhone,
+  normalizePhone,
   generateAccessToken,
   generateRefreshToken,
 } = require("../../helpers/auth/authUtils");
@@ -11,25 +12,56 @@ const {
   refreshCookieConfig,
 } = require("../../helpers/auth/cookies");
 
-// ---- Signin Controller
+// ---- Signin Controller (supports Email OR Phone Number)
 const signin = asyncHandler(async (req, res) => {
-  const { email, password } = req.body;
+  const { identifier, email, phone, password } = req.body;
+  const rawLogin = String(identifier || email || phone || "").trim();
 
-  if (!email || !password) {
+  if (!rawLogin || !password) {
     return res.status(400).json({
       success: false,
-      message: "Email and password are required",
+      message: "Email/Phone and password are required",
     });
   }
 
-  const user = await authSchema
-    .findOne({ email: email.toLowerCase() })
-    .select("+password");
+  if (typeof password !== "string" || password.length < 6) {
+    return res.status(400).json({
+      success: false,
+      message: "Password must be at least 6 characters",
+    });
+  }
+
+  const looksLikeEmail = rawLogin.includes("@");
+  let query;
+
+  if (looksLikeEmail) {
+    if (!isValidEmail(rawLogin)) {
+      return res.status(400).json({
+        success: false,
+        message: "Please enter a valid email address",
+      });
+    }
+    query = { email: rawLogin.toLowerCase() };
+  } else {
+    if (!isValidPhone(rawLogin)) {
+      return res.status(400).json({
+        success: false,
+        message: "Please enter a valid phone number or email address",
+      });
+    }
+    const normalized = normalizePhone(rawLogin);
+    const variants = Array.from(
+      new Set([rawLogin, normalized, `+88${normalized}`, `88${normalized}`]),
+    );
+    query = { phone: { $in: variants } };
+  }
+
+  const user = await authSchema.findOne(query).select("+password");
 
   if (!user) {
     return res.status(401).json({
       success: false,
-      message: "Invalid email or password",
+      message: "Invalid credentials",
     });
   }
 
@@ -38,7 +70,7 @@ const signin = asyncHandler(async (req, res) => {
   if (!isMatch) {
     return res.status(401).json({
       success: false,
-      message: "Invalid email or password",
+      message: "Invalid credentials",
     });
   }
 
@@ -46,6 +78,7 @@ const signin = asyncHandler(async (req, res) => {
     return res.status(403).json({
       success: false,
       message: "Please verify your email first",
+      email: user.email,
     });
   }
 
@@ -56,13 +89,7 @@ const signin = asyncHandler(async (req, res) => {
     });
   }
 
-  // Pending and rejected tenants can sign in to see their status.
-  // Business routes stay blocked by requireApproved.
-
-  // Generate access token
   const accessToken = generateAccessToken(user);
-
-  // Generate refresh token
   const refreshToken = generateRefreshToken(user);
 
   return res

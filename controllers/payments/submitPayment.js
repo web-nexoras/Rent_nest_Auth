@@ -1,10 +1,12 @@
 const { asyncHandler } = require("../../middlewares/asyncHandler");
 const paymentSchema = require("../../models/paymentSchema");
 const authSchema = require("../../models/authSchema");
+const unitSchema = require("../../models/unitSchema");
 const { isValidMonth } = require("../../helpers/month");
-
+const { invalidateCache } = require("../../middlewares/redisCache");
 
 const VALID_METHODS = [
+  "SSLCommerz",
   "bKash",
   "Nagad",
   "Rocket",
@@ -13,8 +15,13 @@ const VALID_METHODS = [
   "Cash",
 ];
 
+/**
+ * Submit Rent Payment (Manual / Reference submission).
+ * STRICT RULE: Rent amount is strictly locked to the assigned unit's `rentAmount`.
+ * Tenants cannot submit an arbitrary or modified rent amount.
+ */
 const submitPayment = asyncHandler(async (req, res) => {
-  const { amount, month, transactionId, paymentMethod } = req.body;
+  const { month, transactionId, paymentMethod } = req.body;
 
   if (req.user.role !== "tenant") {
     return res.status(403).json({
@@ -23,7 +30,6 @@ const submitPayment = asyncHandler(async (req, res) => {
     });
   }
 
-  // Get current tenant from database
   const tenant = await authSchema.findById(req.user._id);
 
   if (!tenant) {
@@ -33,7 +39,6 @@ const submitPayment = asyncHandler(async (req, res) => {
     });
   }
 
-  // Tenant must have an assigned unit
   if (!tenant.assignedUnit) {
     return res.status(400).json({
       success: false,
@@ -41,19 +46,20 @@ const submitPayment = asyncHandler(async (req, res) => {
     });
   }
 
-  // Validate amount
-  const parsedAmount = Number(amount);
+  const unit = await unitSchema.findById(tenant.assignedUnit);
+  if (!unit) {
+    return res.status(404).json({
+      success: false,
+      message: "Assigned unit not found",
+    });
+  }
 
-  if (
-    amount === undefined ||
-    amount === null ||
-    amount === "" ||
-    isNaN(parsedAmount) ||
-    parsedAmount <= 0
-  ) {
+  // Strictly enforce unit's fixed rent amount
+  const fixedAmount = Number(unit.rentAmount);
+  if (!Number.isFinite(fixedAmount) || fixedAmount <= 0) {
     return res.status(400).json({
       success: false,
-      message: "A valid payment amount is required",
+      message: "Unit rent amount is not configured properly",
     });
   }
 
@@ -89,13 +95,12 @@ const submitPayment = asyncHandler(async (req, res) => {
   // Check duplicate payment
   const existingPayment = await paymentSchema.findOne({
     tenant: tenant._id,
-    unit: tenant.assignedUnit,
+    unit: unit._id,
     month,
   });
 
-
   if (existingPayment && existingPayment.status === "rejected") {
-    existingPayment.amount = parsedAmount;
+    existingPayment.amount = fixedAmount;
     existingPayment.transactionId = cleanTransactionId;
     existingPayment.paymentMethod = paymentMethod;
     existingPayment.status = "pending";
@@ -104,9 +109,11 @@ const submitPayment = asyncHandler(async (req, res) => {
     existingPayment.paidAt = new Date();
     await existingPayment.save();
 
+    await invalidateCache("admin", "units", "payments", "tenant");
+
     return res.status(200).json({
       success: true,
-      message: "Rejected payment resubmitted. Awaiting admin verification.",
+      message: "Rejected payment resubmitted with fixed unit rent. Awaiting admin verification.",
       payment: existingPayment,
     });
   }
@@ -118,19 +125,20 @@ const submitPayment = asyncHandler(async (req, res) => {
     });
   }
 
-  // Create payment
   const payment = await paymentSchema.create({
     tenant: tenant._id,
-    unit: tenant.assignedUnit,
-    amount: parsedAmount,
+    unit: unit._id,
+    amount: fixedAmount,
     month,
     transactionId: cleanTransactionId,
     paymentMethod,
   });
 
+  await invalidateCache("admin", "units", "payments", "tenant");
+
   return res.status(201).json({
     success: true,
-    message: "Payment submitted successfully. Awaiting admin verification.",
+    message: `Payment of ${fixedAmount} BDT submitted successfully. Awaiting admin verification.`,
     payment,
   });
 });

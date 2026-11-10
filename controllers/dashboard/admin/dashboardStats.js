@@ -5,29 +5,33 @@ const paymentSchema = require("../../../models/paymentSchema");
 const maintenanceSchema = require("../../../models/maintenanceSchema");
 const { getCurrentMonth } = require("../../../helpers/month");
 
-
 const getAdminDashboardStats = asyncHandler(async (req, res) => {
   const currentMonth = getCurrentMonth();
+  const now = new Date();
+  const dayOfMonth = now.getDate();
+  const isPast10th = dayOfMonth > 10;
 
   const [
     totalUnits,
-    occupiedUnits,
+    occupiedUnitsDocs,
     totalTenants,
     pendingApprovals,
     pendingMaintenanceCount,
     collectionResult,
+    pendingPaymentCount,
     paidTenantIds,
     revenueRows,
   ] = await Promise.all([
     unitSchema.countDocuments({}),
-    unitSchema.countDocuments({ status: "occupied" }),
+    unitSchema.find({ status: "occupied" }).select("rentAmount").lean(),
     authSchema.countDocuments({ role: "tenant", approvalStatus: "approved" }),
     authSchema.countDocuments({ role: "tenant", approvalStatus: "pending" }),
     maintenanceSchema.countDocuments({ status: "pending" }),
     paymentSchema.aggregate([
       { $match: { month: currentMonth, status: "verified" } },
-      { $group: { _id: null, total: { $sum: "$amount" } } },
+      { $group: { _id: null, total: { $sum: "$amount" }, count: { $sum: 1 } } },
     ]),
+    paymentSchema.countDocuments({ month: currentMonth, status: "pending" }),
     paymentSchema.distinct("tenant", {
       month: currentMonth,
       status: { $in: ["pending", "verified"] },
@@ -40,7 +44,13 @@ const getAdminDashboardStats = asyncHandler(async (req, res) => {
     ]),
   ]);
 
-  const overdueTenantsCount = await authSchema.countDocuments({
+  const occupiedUnits = occupiedUnitsDocs.length;
+  const expectedMonthlyRevenue = occupiedUnitsDocs.reduce(
+    (sum, u) => sum + Number(u.rentAmount || 0),
+    0,
+  );
+
+  const unpaidTenantsCount = await authSchema.countDocuments({
     role: "tenant",
     approvalStatus: "approved",
     isActive: true,
@@ -49,18 +59,27 @@ const getAdminDashboardStats = asyncHandler(async (req, res) => {
   });
 
   const thisMonthCollection = collectionResult[0]?.total || 0;
+  const paidUnitsCount = collectionResult[0]?.count || 0;
 
   return res.status(200).json({
     success: true,
     month: currentMonth,
+    dayOfMonth,
+    isPast10th,
     stats: {
       totalUnits,
       occupiedUnits,
-      vacantUnits: totalUnits - occupiedUnits,
+      vacantUnits: Math.max(0, totalUnits - occupiedUnits),
+      paidUnitsCount,
+      pendingPaymentCount,
+      unpaidUnitsCount: unpaidTenantsCount,
       totalTenants,
       pendingApprovals,
+      expectedMonthlyRevenue,
       thisMonthCollection,
-      overdueTenantsCount,
+      outstandingRevenue: Math.max(0, expectedMonthlyRevenue - thisMonthCollection),
+      overdueTenantsCount: unpaidTenantsCount,
+      strictOverdueCount: isPast10th ? unpaidTenantsCount : 0,
       pendingMaintenanceCount,
       revenueTrend: revenueRows
         .map((row) => ({

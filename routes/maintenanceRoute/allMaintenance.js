@@ -2,7 +2,7 @@ const express = require("express");
 const router = express.Router();
 const { imageUpload } = require("../../helpers/upload");
 
-// ----------controllerss
+// ----------controllers
 const {
   createMaintenance,
 } = require("../../controllers/maintenance/createMaintenance");
@@ -22,20 +22,24 @@ const {
   updateMaintenanceStatus,
 } = require("../../controllers/maintenance/updateMaintenance");
 
-// ----------middleweres
+// ----------middlewares
 const { adminOnly } = require("../../middlewares/adminOnly");
 const { requireApproved } = require("../../middlewares/requireApproved");
+const { cacheGet, clearCacheOnSuccess } = require("../../middlewares/redisCache");
+
+const clearMaintenanceCache = clearCacheOnSuccess("maintenance", "admin", "tenant");
 
 router.post(
   "/create",
   requireApproved,
+  clearMaintenanceCache,
   imageUpload.array("images", 3),
   createMaintenance,
 );
-router.get("/getmy", requireApproved, getMyMaintenance);
-router.get("/getall", adminOnly, getAllMaintenance);
-router.get("/single/:id",requireApproved, getSingleMaintenance);
-router.delete("/del/:id", requireApproved, deleteMaintenance);
-router.patch("/update/:id", adminOnly, updateMaintenanceStatus);
+router.get("/getmy", requireApproved, cacheGet("maintenance", 20), getMyMaintenance);
+router.get("/getall", adminOnly, cacheGet("maintenance", 20), getAllMaintenance);
+router.get("/single/:id", requireApproved, cacheGet("maintenance", 20), getSingleMaintenance);
+router.delete("/del/:id", requireApproved, clearMaintenanceCache, deleteMaintenance);
+router.patch("/update/:id", adminOnly, clearMaintenanceCache, updateMaintenanceStatus);
 
 module.exports = router;

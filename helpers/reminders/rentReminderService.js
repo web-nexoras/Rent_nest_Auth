@@ -4,35 +4,175 @@ const rentReminderSchema = require("../../models/rentReminderSchema");
 const unitSchema = require("../../models/unitSchema");
 const { getCurrentMonth } = require("../month");
 const { sendNoticeEmail } = require("../email/mailService");
+const { invalidateCache } = require("../../middlewares/redisCache");
 
-const sendMonthlyRentReminders = async () => {
-  const month = getCurrentMonth();
-  const tenants = await authSchema.find({ role: "tenant", approvalStatus: "approved", isActive: true, assignedUnit: { $ne: null } }).select("name email assignedUnit");
-  for (const tenant of tenants) {
-    const payment = await paymentSchema.findOne({ tenant: tenant._id, month, status: { $in: ["pending", "verified"] } }).select("_id");
-    if (payment) continue;
-    const unit = await unitSchema.findById(tenant.assignedUnit).select("unitNumber rentAmount");
-    if (!unit) continue;
-    let reminder;
-    try {
-      reminder = await rentReminderSchema.create({ tenant: tenant._id, month });
-    } catch (error) {
-      if (error.code === 11000) continue;
-      throw error;
+const getTodayKey = (now = new Date()) =>
+  `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, "0")}-${String(
+    now.getDate(),
+  ).padStart(2, "0")}`;
+
+/**
+ * Sends a rent reminder to a single tenant for the given month.
+ * Stage rules:
+ * - If forceManual=true (Admin clicked "Send Reminder"): sends immediately and increments reminderCount.
+ * - Automatic run:
+ *   - Day > rentDueDay and Day < 10: sends 1 initial "due_alert" if not sent yet.
+ *   - Day >= 10 (10th and after): sends "overdue_10th" reminder once per calendar day until paid.
+ */
+const sendSingleTenantReminder = async ({
+  tenant,
+  unit,
+  month = getCurrentMonth(),
+  forceManual = false,
+  customNote = "",
+}) => {
+  const now = new Date();
+  const dayOfMonth = now.getDate();
+  const todayKey = getTodayKey(now);
+  const currentMonthStr = getCurrentMonth();
+  const isPastMonth = month < currentMonthStr;
+  const isCurrentMonth = month === currentMonthStr;
+  const dueDay = unit.rentDueDay || 5;
+
+  const isOverdueStage = isPastMonth || (isCurrentMonth && dayOfMonth >= 10);
+  const isInitialAlertStage =
+    !isOverdueStage && isCurrentMonth && dayOfMonth > dueDay;
+
+  if (!forceManual && !isOverdueStage && !isInitialAlertStage) {
+    return { sent: false, reason: "Not past due date yet" };
+  }
+
+  let record = await rentReminderSchema.findOne({ tenant: tenant._id, month });
+
+  if (!forceManual && record) {
+    if (isInitialAlertStage && record.firstAlertSentAt) {
+      return { sent: false, reason: "Initial due alert already sent" };
     }
-    try {
-      await sendNoticeEmail({
-        email: tenant.email,
-        subject: `Rent reminder for ${month}`,
-        title: `Rent reminder: ${month}`,
-        message: `Hello ${tenant.name}, your rent payment for ${month} is due.`,
-        details: { Unit: unit.unitNumber, Month: month, "Amount due": `${unit.rentAmount} BDT` },
-      });
-    } catch (error) {
-      await rentReminderSchema.deleteOne({ _id: reminder._id });
-      console.error(`Rent reminder failed for tenant ${tenant._id}:`, error.message);
+    if (isOverdueStage && record.lastOverdueSentDate === todayKey) {
+      return { sent: false, reason: "Overdue reminder already sent today" };
     }
   }
+
+  const stage = forceManual
+    ? "manual_admin"
+    : isOverdueStage
+      ? "overdue_10th"
+      : "due_alert";
+
+  const subject = isOverdueStage
+    ? `URGENT: Overdue Rent Reminder for ${month} (Unit ${unit.unitNumber})`
+    : `Rent Due Alert for ${month} (Unit ${unit.unitNumber})`;
+
+  const title = isOverdueStage
+    ? `Overdue Rent Notice — Unit ${unit.unitNumber}`
+    : `Upcoming / Due Rent Alert — Unit ${unit.unitNumber}`;
+
+  const defaultMessage = isOverdueStage
+    ? `Hello ${tenant.name}, your monthly rent for ${month} is past the 10th deadline and is now marked OVERDUE. Please complete your payment immediately via SSLCommerz or your tenant dashboard.`
+    : `Hello ${tenant.name}, this is a gentle alert that your rent for ${month} is due (Due Day: ${dueDay}). Please pay on or before the 10th to avoid overdue status.`;
+
+  const finalMessage = customNote ? `${defaultMessage}\n\nAdmin Note: ${customNote}` : defaultMessage;
+
+  if (!record) {
+    record = await rentReminderSchema.create({
+      tenant: tenant._id,
+      unit: unit._id,
+      month,
+      sentAt: now,
+      firstAlertSentAt: now,
+      lastOverdueSentDate: isOverdueStage ? todayKey : null,
+      reminderCount: 1,
+      lastStage: stage,
+      lastMessage: finalMessage,
+    });
+  } else {
+    record.sentAt = now;
+    record.unit = unit._id;
+    record.reminderCount = (record.reminderCount || 1) + 1;
+    record.lastStage = stage;
+    record.lastMessage = finalMessage;
+    if (!record.firstAlertSentAt) record.firstAlertSentAt = now;
+    if (isOverdueStage) record.lastOverdueSentDate = todayKey;
+    await record.save();
+  }
+
+  try {
+    await sendNoticeEmail({
+      email: tenant.email,
+      subject,
+      title,
+      message: finalMessage,
+      details: {
+        Unit: unit.unitNumber,
+        "Billing Month": month,
+        "Fixed Rent Due": `${unit.rentAmount} BDT`,
+        Status: isOverdueStage ? "OVERDUE (Past 10th)" : "Due (Pay by 10th)",
+        "Reminder Count": `#${record.reminderCount}`,
+      },
+    });
+  } catch (error) {
+    console.error(`Rent reminder email failed for ${tenant.email}:`, error.message);
+  }
+
+  return { sent: true, reminder: record };
 };
 
-module.exports = { sendMonthlyRentReminders };
+const sendMonthlyRentReminders = async ({ forceManual = false, month = getCurrentMonth(), customNote = "" } = {}) => {
+  const tenants = await authSchema
+    .find({
+      role: "tenant",
+      approvalStatus: "approved",
+      isActive: true,
+      assignedUnit: { $ne: null },
+    })
+    .select("name email phone assignedUnit");
+
+  let sentCount = 0;
+  const results = [];
+
+  for (const tenant of tenants) {
+    const payment = await paymentSchema
+      .findOne({
+        tenant: tenant._id,
+        month,
+        status: { $in: ["pending", "verified"] },
+      })
+      .select("_id");
+
+    if (payment) continue;
+
+    const unit = await unitSchema
+      .findById(tenant.assignedUnit)
+      .select("unitNumber rentAmount rentDueDay");
+    if (!unit) continue;
+
+    const outcome = await sendSingleTenantReminder({
+      tenant,
+      unit,
+      month,
+      forceManual,
+      customNote,
+    });
+
+    if (outcome.sent) {
+      sentCount += 1;
+      results.push({
+        tenantId: tenant._id,
+        name: tenant.name,
+        unitNumber: unit.unitNumber,
+        reminderCount: outcome.reminder.reminderCount,
+      });
+    }
+  }
+
+  if (sentCount > 0) {
+    await invalidateCache("admin", "units", "payments", "tenant");
+  }
+
+  return { sentCount, results };
+};
+
+module.exports = {
+  sendSingleTenantReminder,
+  sendMonthlyRentReminders,
+};
