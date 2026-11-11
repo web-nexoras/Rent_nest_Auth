@@ -39,6 +39,16 @@ const health = (req, res) => {
 router.get("/health", health);
 router.get(`${baseUrl}/health`, health);
 
+// Keep database-backed routes from entering Mongoose's query buffer while
+// Atlas is disconnected. Health and documentation routes remain available.
+router.use(baseUrl, (req, res, next) => {
+  if (mongoose.connection.readyState === 1) return next();
+  return res.status(503).json({
+    success: false,
+    message: "Database is unavailable. Please try again shortly.",
+  });
+});
+
 router.use(baseUrl, authRoutes);
 router.use(baseUrl, noticeRoutes);
 router.use(baseUrl, unitRoutes);
