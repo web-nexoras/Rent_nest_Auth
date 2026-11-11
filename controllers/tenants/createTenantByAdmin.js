@@ -54,11 +54,12 @@ const createTenantByAdmin = asyncHandler(async (req, res) => {
 
   const cleanEmail = email.trim().toLowerCase();
   const normalizedPhone = normalizePhone(phone);
+  const localPhone = normalizedPhone.replace(/^\+88/, "");
 
   const existing = await authSchema.findOne({
     $or: [
       { email: cleanEmail },
-      { phone: { $in: [phone.trim(), normalizedPhone] } },
+      { phone: { $in: [phone.trim(), normalizedPhone, localPhone] } },
     ],
   });
 

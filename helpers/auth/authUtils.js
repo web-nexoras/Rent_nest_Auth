@@ -23,26 +23,20 @@ function isValidEmail(email) {
   return STRICT_EMAIL_REGEX.test(trimmed);
 }
 
-// Supports BD mobile numbers (013-019XXXXXXXX, +8801XXXXXXXXX) and E.164
-const STRICT_PHONE_REGEX = /^(?:\+?88)?01[3-9]\d{8}$|^\+?[1-9]\d{9,14}$/;
+const cleanPhone = (phone) => String(phone ?? "").replace(/[\s\-()]/g, "");
 
-function isValidPhone(phone) {
-  if (typeof phone !== "string") return false;
-  const cleaned = phone.trim().replace(/[\s()-]/g, "");
-  return STRICT_PHONE_REGEX.test(cleaned);
-}
+// Bangladesh mobile numbers across all operator prefixes (013-019).
+const STRICT_PHONE_REGEX = /^(?:\+?88)?01[3-9]\d{8}$/;
 
-// Normalize +8801XXXXXXXXX or 8801XXXXXXXXX to 01XXXXXXXXX
-function normalizePhone(phone = "") {
-  const cleaned = String(phone).trim().replace(/[\s()-]/g, "");
-  if (cleaned.startsWith("+8801") && cleaned.length === 14) {
-    return cleaned.slice(3);
-  }
-  if (cleaned.startsWith("8801") && cleaned.length === 13) {
-    return cleaned.slice(2);
-  }
-  return cleaned;
-}
+const isValidPhone = (phone) => {
+  if (!phone) return false;
+  return STRICT_PHONE_REGEX.test(cleanPhone(phone));
+};
+
+// Canonical storage format: +8801XXXXXXXXX
+const normalizePhone = (phone) => {
+  return "+88" + cleanPhone(phone).replace(/^(?:\+?88)/, "");
+};
 
 const generateOTP = () => crypto.randomInt(1000, 10000).toString();
 
@@ -70,6 +64,7 @@ module.exports = {
   STRICT_PHONE_REGEX,
   BLOCKED_EMAIL_DOMAINS,
   isValidEmail,
+  cleanPhone,
   isValidPhone,
   normalizePhone,
   generateOTP,

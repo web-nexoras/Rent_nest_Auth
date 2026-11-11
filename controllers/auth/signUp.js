@@ -36,7 +36,7 @@ const signup = asyncHandler(async (req, res) => {
   if (!phone || !isValidPhone(phone)) {
     return res.status(400).json({
       success: false,
-      message: "Please provide a valid phone number (e.g. 017XXXXXXXX)",
+      message: "Please provide a valid Bangladesh mobile number (013-019XXXXXXXX or +8801XXXXXXXXX)",
     });
   }
 
@@ -48,12 +48,13 @@ const signup = asyncHandler(async (req, res) => {
   }
 
   const normalizedPhone = normalizePhone(phone);
+  const localPhone = normalizedPhone.replace(/^\+88/, "");
 
   // Prevent duplicate registration by email or phone
   const existingUser = await authSchema.findOne({
     $or: [
       { email: email.trim().toLowerCase() },
-      { phone: { $in: [phone.trim(), normalizedPhone] } },
+      { phone: { $in: [phone.trim(), normalizedPhone, localPhone] } },
     ],
   });
 

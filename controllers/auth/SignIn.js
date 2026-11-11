@@ -51,8 +51,9 @@ const signin = asyncHandler(async (req, res) => {
       });
     }
     const normalized = normalizePhone(rawLogin);
+    const localPhone = normalized.replace(/^\+88/, "");
     const variants = Array.from(
-      new Set([rawLogin, normalized, `+88${normalized}`, `88${normalized}`]),
+      new Set([rawLogin, normalized, localPhone, `88${localPhone}`]),
     );
     query = { phone: { $in: variants } };
   }
