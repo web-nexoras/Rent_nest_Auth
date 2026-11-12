@@ -20,13 +20,33 @@ if (process.env.NODE_ENV === "production") {
 
 const allowedOrigins = (process.env.CLIENT_URL || "http://localhost:3000")
   .split(",")
-  .map((origin) => origin.trim())
+  .map((origin) => {
+    try {
+      return new URL(origin.trim()).origin;
+    } catch {
+      return origin.trim().replace(/\/$/, "");
+    }
+  })
   .filter(Boolean);
+
+const isAllowedOrigin = (origin) => {
+  if (allowedOrigins.includes(origin)) return true;
+
+  // Allow local frontend dev servers on their usual ports and preview builds
+  // deployed under this Vercel project; production origins remain explicit above.
+  try {
+    const url = new URL(origin);
+    if (["localhost", "127.0.0.1"].includes(url.hostname)) return true;
+    return /^rent-nest(?:-[a-z0-9-]+)?\.vercel\.app$/i.test(url.hostname);
+  } catch {
+    return false;
+  }
+};
 
 app.use(
   cors({
     origin(origin, callback) {
-      if (!origin || origin === "null" || allowedOrigins.includes(origin)) {
+      if (!origin || origin === "null" || isAllowedOrigin(origin)) {
         return callback(null, true);
       }
       const error = new Error("Not allowed by CORS");
