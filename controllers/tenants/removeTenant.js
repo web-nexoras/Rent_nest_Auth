@@ -33,6 +33,7 @@ const removeTenant = asyncHandler(async (req, res) => {
     const unit = await unitSchema.findById(tenant.assignedUnit);
     if (unit) {
       unit.assignedTenant = null;
+      unit.assignedMonth = null;
       await unit.save();
     }
   }

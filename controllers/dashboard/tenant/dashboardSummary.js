@@ -11,7 +11,10 @@ const getTenantDashboard = asyncHandler(async (req, res) => {
 
   const user = await authSchema
     .findById(req.user._id)
-    .populate("assignedUnit", "unitNumber floor sizeSqft bedrooms rentAmount rentDueDay description images");
+    .populate(
+      "assignedUnit",
+      "unitNumber floor sizeSqft bedrooms rentAmount rentDueDay description images assignedMonth",
+    );
   const recentNotices = await noticeSchema
     .find()
     .sort({ createdAt: -1 })
@@ -40,11 +43,23 @@ const getTenantDashboard = asyncHandler(async (req, res) => {
     recentMaintenance,
     reminder,
   ] = await Promise.all([
-    paymentSchema.findOne({
-      tenant: req.user._id,
-      month: currentMonth,
-    }),
-    paymentSchema.find({ tenant: req.user._id }).sort({ month: -1 }).limit(12),
+    currentMonth >= (user.assignedUnit.assignedMonth || currentMonth)
+      ? paymentSchema.findOne({
+          tenant: req.user._id,
+          unit: user.assignedUnit._id,
+          month: currentMonth,
+        })
+      : Promise.resolve(null),
+    paymentSchema
+      .find({
+        tenant: req.user._id,
+        unit: user.assignedUnit._id,
+        month: {
+          $gte: user.assignedUnit.assignedMonth || currentMonth,
+        },
+      })
+      .sort({ month: -1 })
+      .limit(12),
     maintenanceSchema.countDocuments({
       tenant: req.user._id,
       status: { $ne: "resolved" },

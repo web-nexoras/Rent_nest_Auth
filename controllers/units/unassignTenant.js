@@ -31,6 +31,7 @@ const unassignTenant = asyncHandler(async (req, res) => {
   const tenant = await authSchema.findById(tenantId);
 
   unit.assignedTenant = null;
+  unit.assignedMonth = null;
 
   if (tenant) {
     tenant.assignedUnit = null;

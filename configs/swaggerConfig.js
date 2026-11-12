@@ -223,7 +223,7 @@ const swaggerSpec = {
       post: {
         tags: ["Auth & Profile"],
         summary:
-          "Register a new tenant account & send 4-digit OTP email (Page: SignupPage.jsx)",
+          "Register a new tenant account & start sending a 4-digit OTP email (Page: SignupPage.jsx)",
         requestBody: {
           required: true,
           content: {
@@ -233,7 +233,7 @@ const swaggerSpec = {
           },
         },
         responses: {
-          201: { description: "Signup successful; OTP sent to email" },
+          201: { description: "Account created; verification email is being sent asynchronously" },
           400: {
             description:
               "Validation failed (strict email/phone regex or password < 6 chars)",
@@ -692,7 +692,11 @@ const swaggerSpec = {
             schema: { type: "string" },
           },
         ],
-        responses: { 200: { description: "Tenant assigned" } },
+        responses: {
+          200: {
+            description: "Tenant assigned; unit includes the assignment month",
+          },
+        },
       },
     },
     "/unit/unassign-tenant/{id}": {
@@ -726,7 +730,7 @@ const swaggerSpec = {
         tags: ["Payments & SSLCommerz"],
         security: [{ cookieAuth: [] }],
         summary:
-          "Submit manual rent payment (Amount strictly locked to assigned unit's rentAmount) (Page: TenantPaymentsPage.jsx)",
+          "Submit manual rent payment for the assignment month onward (Amount strictly locked to assigned unit's rentAmount) (Page: TenantPaymentsPage.jsx)",
         requestBody: {
           required: true,
           content: {
@@ -776,7 +780,7 @@ const swaggerSpec = {
         tags: ["Payments & SSLCommerz"],
         security: [{ cookieAuth: [] }],
         summary:
-          "Get tenant's payment history [Redis Cached] (Page: TenantPaymentsPage.jsx)",
+          "Get tenant's payment history from the current unit's assignment month onward [Redis Cached] (Page: TenantPaymentsPage.jsx)",
         responses: { 200: { description: "List of tenant payments" } },
       },
     },

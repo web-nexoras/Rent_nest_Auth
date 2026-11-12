@@ -60,12 +60,13 @@ Tenant Dashboard & Fixed-Rent Billing Unlocked!
 
 ### D. Fixed Rent Enforcement & SSLCommerz Online Payment Flow
 1. **Strict Rent Lock:** Every flat has a fixed `rentAmount`. When a tenant pays rent (`POST /api/v1/payment/submit` or `POST /api/v1/payment/ssl/init`), the backend **ignores any client-supplied amount** and strictly locks the payment amount to `unit.rentAmount` from the database.
-2. **Two Payment Channels:**
+2. **Assignment-based Billing:** Each unit stores the month it was assigned. Tenant payment history and both payment channels start from that month, including the assignment month. Existing occupied units without a stored assignment month use the current month until they are reassigned.
+3. **Two Payment Channels:**
    - **Option 1 — Instant Online Payment via SSLCommerz (`POST /api/v1/payment/ssl/init`):**
      - Redirects the tenant to the SSLCommerz Gateway (bKash, Nagad, Rocket, Cards).
      - Upon completion (`POST /api/v1/payments/subscription/success`), the backend validates the transaction, **automatically marks the payment as `verified`**, emails the official receipt, invalidates the Redis cache, and redirects the tenant back to their payment receipt.
    - **Option 2 — Manual / Cash Submission (`POST /api/v1/payment/submit`):**
-     - Tenant submits a transaction reference (or Cash). Payment starts as `pending` until the Admin clicks **Verify** (`PATCH /api/v1/payment/verify/:id`).
+     - After completing the bank/mobile transfer, the tenant submits its transaction reference (or submits Cash without one). Payment starts as `pending` until the Admin clicks **Verify** (`PATCH /api/v1/payment/verify/:id`).
 
 ---
 

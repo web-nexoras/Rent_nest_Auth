@@ -7,6 +7,7 @@ const {
   isValidPhone,
   normalizePhone,
 } = require("../../helpers/auth/authUtils");
+const { getCurrentMonth } = require("../../helpers/month");
 const { invalidateCache } = require("../../middlewares/redisCache");
 
 // Update tenant profile, credentials, status, or assigned unit
@@ -139,6 +140,7 @@ const updateTenantByAdmin = asyncHandler(async (req, res) => {
         const oldUnit = await unitSchema.findById(currentUnitId);
         if (oldUnit) {
           oldUnit.assignedTenant = null;
+          oldUnit.assignedMonth = null;
           await oldUnit.save();
         }
       }
@@ -166,6 +168,7 @@ const updateTenantByAdmin = asyncHandler(async (req, res) => {
           });
         }
         nextUnit.assignedTenant = tenant._id;
+        nextUnit.assignedMonth = getCurrentMonth();
         await nextUnit.save();
         tenant.assignedUnit = nextUnit._id;
         tenant.approvalStatus = "approved";
@@ -179,7 +182,7 @@ const updateTenantByAdmin = asyncHandler(async (req, res) => {
 
   const updated = await authSchema
     .findById(tenant._id)
-    .populate("assignedUnit", "unitNumber floor rentAmount");
+    .populate("assignedUnit", "unitNumber floor rentAmount assignedMonth");
 
   return res.status(200).json({
     success: true,

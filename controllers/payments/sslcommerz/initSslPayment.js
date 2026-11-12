@@ -40,6 +40,14 @@ const initSslPayment = asyncHandler(async (req, res) => {
     });
   }
 
+  const assignmentMonth = unit.assignedMonth || getCurrentMonth();
+  if (month < assignmentMonth) {
+    return res.status(400).json({
+      success: false,
+      message: `Rent can only be paid from ${assignmentMonth}`,
+    });
+  }
+
   const fixedAmount = Number(unit.rentAmount);
   if (!Number.isFinite(fixedAmount) || fixedAmount <= 0) {
     return res.status(400).json({

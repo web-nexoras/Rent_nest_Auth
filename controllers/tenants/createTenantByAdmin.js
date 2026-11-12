@@ -8,6 +8,7 @@ const {
   normalizePhone,
 } = require("../../helpers/auth/authUtils");
 const { sendNoticeEmail } = require("../../helpers/email/mailService");
+const { getCurrentMonth } = require("../../helpers/month");
 const { invalidateCache } = require("../../middlewares/redisCache");
 
 // Create an approved tenant account directly and optionally assign a vacant unit
@@ -114,6 +115,7 @@ const createTenantByAdmin = asyncHandler(async (req, res) => {
 
   if (unit) {
     unit.assignedTenant = tenant._id;
+    unit.assignedMonth = getCurrentMonth();
     await unit.save();
   }
 
@@ -144,7 +146,7 @@ const createTenantByAdmin = asyncHandler(async (req, res) => {
 
   const populated = await authSchema
     .findById(tenant._id)
-    .populate("assignedUnit", "unitNumber floor rentAmount");
+    .populate("assignedUnit", "unitNumber floor rentAmount assignedMonth");
 
   return res.status(201).json({
     success: true,

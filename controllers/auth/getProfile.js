@@ -21,7 +21,7 @@ const getProfile = asyncHandler(async (req, res) => {
         isActive: 1,
       },
     )
-    .populate("assignedUnit", "unitNumber floor rentAmount status");
+    .populate("assignedUnit", "unitNumber floor rentAmount status assignedMonth");
 
   if (!user) {
     return res.status(404).json({

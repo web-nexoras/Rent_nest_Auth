@@ -2,6 +2,7 @@ const mongoose = require("mongoose");
 const authSchema = require("../../models/authSchema");
 const unitSchema = require("../../models/unitSchema");
 const { asyncHandler } = require("../../middlewares/asyncHandler");
+const { getCurrentMonth } = require("../../helpers/month");
 
 const updateApprovalStatus = asyncHandler(async (req, res) => {
   const { id } = req.params;
@@ -98,6 +99,7 @@ const updateApprovalStatus = asyncHandler(async (req, res) => {
 
   tenant.assignedUnit = unit._id;
   unit.assignedTenant = tenant._id;
+  unit.assignedMonth = getCurrentMonth();
 
   await unit.save();
   await tenant.save();

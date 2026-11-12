@@ -2,7 +2,7 @@ const { asyncHandler } = require("../../middlewares/asyncHandler");
 const paymentSchema = require("../../models/paymentSchema");
 const authSchema = require("../../models/authSchema");
 const unitSchema = require("../../models/unitSchema");
-const { isValidMonth } = require("../../helpers/month");
+const { getCurrentMonth, isValidMonth } = require("../../helpers/month");
 const { invalidateCache } = require("../../middlewares/redisCache");
 
 const VALID_METHODS = [
@@ -63,6 +63,14 @@ const submitPayment = asyncHandler(async (req, res) => {
     return res.status(400).json({
       success: false,
       message: "Month is required in YYYY-MM format",
+    });
+  }
+
+  const assignmentMonth = unit.assignedMonth || getCurrentMonth();
+  if (month < assignmentMonth) {
+    return res.status(400).json({
+      success: false,
+      message: `Rent can only be submitted from ${assignmentMonth}`,
     });
   }
 

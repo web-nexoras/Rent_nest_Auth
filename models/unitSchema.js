@@ -36,6 +36,11 @@ const unitSchema = new mongoose.Schema(
       enum: ["vacant", "occupied"],
       default: "vacant",
     },
+    assignedMonth: {
+      type: String,
+      match: /^\d{4}-(0[1-9]|1[0-2])$/,
+      default: null,
+    },
     assignedTenant: {
       type: mongoose.Schema.Types.ObjectId,
       ref: "User",
@@ -58,6 +63,7 @@ const unitSchema = new mongoose.Schema(
 // Sync unit occupancy status with assignedTenant
 unitSchema.pre("save", function () {
   this.status = this.assignedTenant ? "occupied" : "vacant";
+  if (!this.assignedTenant) this.assignedMonth = null;
 });
 
 module.exports = mongoose.model("Unit", unitSchema);

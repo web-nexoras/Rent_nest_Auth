@@ -2,6 +2,7 @@ const { asyncHandler } = require("../../middlewares/asyncHandler");
 const unitSchema = require("../../models/unitSchema");
 const authSchema = require("../../models/authSchema");
 const mongoose = require("mongoose");
+const { getCurrentMonth } = require("../../helpers/month");
 
 const assignTenant = asyncHandler(async (req, res) => {
   const { id } = req.params;
@@ -82,6 +83,7 @@ const assignTenant = asyncHandler(async (req, res) => {
   }
 
   unit.assignedTenant = tenant._id;
+  unit.assignedMonth = getCurrentMonth();
   tenant.assignedUnit = unit._id;
 
   await unit.save();
