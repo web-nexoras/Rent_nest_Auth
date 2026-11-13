@@ -1,12 +1,15 @@
 const { emailTemp } = require("../../helpers/email/emailTemp.js");
 
 const brevoApiKey = (process.env.BREVO_API_KEY || "").trim();
-const senderEmail = (process.env.SENDER_EMAIL || "").trim();
+const mailFrom = (process.env.MAIL_FROM || "").trim();
+const formattedSender = mailFrom.match(/^(?:\"([^\"]+)\"|'([^']+)'|([^<]+))\s*<([^>]+)>$/);
+const senderEmail = (formattedSender?.[4] || process.env.EMAIL_FROM || process.env.SENDER_EMAIL || "").trim();
+const senderName = (formattedSender?.[1] || formattedSender?.[2] || formattedSender?.[3] || process.env.EMAIL_FROM_NAME || "Rent Nest").trim();
 const notifyEmail = (process.env.NOTIFY_EMAIL || "").trim();
 
 const sendEmail = async ({ email, subject, otp, resetLink, title, message, details }) => {
   if (!brevoApiKey || !senderEmail) {
-    throw new Error("BREVO_API_KEY and SENDER_EMAIL are required to send email");
+    throw new Error("BREVO_API_KEY and MAIL_FROM (or EMAIL_FROM) are required to send email");
   }
 
   const recipient = (email || notifyEmail).trim();
@@ -20,7 +23,7 @@ const sendEmail = async ({ email, subject, otp, resetLink, title, message, detai
       "content-type": "application/json",
     },
     body: JSON.stringify({
-      sender: { name: "Rent Nest", email: senderEmail },
+      sender: { name: senderName, email: senderEmail },
       to: [{ email: recipient }],
       subject,
       htmlContent: emailTemp({ otp, resetLink, title, message, details }),
