@@ -36,6 +36,9 @@ const sendViaSmtp = async ({ recipient, subject, htmlContent }) => {
       user: smtpUser,
       pass: smtpPass,
     },
+    connectionTimeout: 3500,
+    greetingTimeout: 3500,
+    socketTimeout: 3500,
   });
 
   await transporter.sendMail({
@@ -44,6 +47,33 @@ const sendViaSmtp = async ({ recipient, subject, htmlContent }) => {
     subject,
     html: htmlContent,
   });
+
+  return true;
+};
+
+const sendViaResend = async ({ recipient, subject, htmlContent }) => {
+  const resendApiKey = (process.env.RESEND_API_KEY || "").trim();
+  if (!resendApiKey) return false;
+  const { senderName } = getSenderDetails();
+
+  const response = await fetch("https://api.resend.com/emails", {
+    method: "POST",
+    headers: {
+      Authorization: `Bearer ${resendApiKey}`,
+      "Content-Type": "application/json",
+    },
+    body: JSON.stringify({
+      from: `${senderName} <onboarding@resend.dev>`,
+      to: [recipient],
+      subject,
+      html: htmlContent,
+    }),
+  });
+
+  if (!response.ok) {
+    const errorText = await response.text();
+    throw new Error(`Resend error (${response.status}): ${errorText}`);
+  }
 
   return true;
 };
@@ -70,6 +100,11 @@ const sendViaBrevo = async ({ recipient, subject, htmlContent }) => {
 
   if (!response.ok) {
     const responseBody = await response.text();
+    if (responseBody.includes("unauthorised_ips") || responseBody.includes("unrecognised IP address")) {
+      console.error(
+        "[Brevo IP Restriction] Brevo rejected request because IP is not whitelisted. Please disable IP restriction at: https://app.brevo.com/security/authorised_ips"
+      );
+    }
     throw new Error(`Brevo API error (${response.status}): ${responseBody}`);
   }
 
@@ -86,7 +121,20 @@ const sendEmail = async ({ email, subject, otp, resetLink, title, message, detai
   let sent = false;
   let lastError = null;
 
-  // 1. Try Gmail / SMTP first
+  // 1. Try Resend if configured
+  try {
+    sent = await sendViaResend({ recipient, subject, htmlContent });
+    if (sent) {
+      console.log(`[Rent Nest Email] Delivered via Resend to ${recipient}`);
+      if (otp) console.log(`[Rent Nest Verification OTP] Code for ${recipient}: ${otp}`);
+      return true;
+    }
+  } catch (resendErr) {
+    console.warn(`[Rent Nest Email] Resend failed: ${resendErr.message}`);
+    lastError = resendErr;
+  }
+
+  // 2. Try Gmail / SMTP
   try {
     sent = await sendViaSmtp({ recipient, subject, htmlContent });
     if (sent) {
@@ -99,7 +147,7 @@ const sendEmail = async ({ email, subject, otp, resetLink, title, message, detai
     lastError = smtpErr;
   }
 
-  // 2. Try Brevo as fallback
+  // 3. Try Brevo as fallback
   try {
     sent = await sendViaBrevo({ recipient, subject, htmlContent });
     if (sent) {
@@ -130,10 +178,6 @@ const mailSender = async ({ email, subject, otp, resetLink }) => {
 };
 
 const sendNoticeEmail = async ({ email, subject, title, message, details }) => {
-  const hasSmtp = Boolean(process.env.SMTP_USER && process.env.SMTP_PASS);
-  const hasBrevo = Boolean(process.env.BREVO_API_KEY);
-  if (!hasSmtp && !hasBrevo) return false;
-
   try {
     await sendEmail({ email, subject, title, message, details });
     return true;

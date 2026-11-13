@@ -106,6 +106,7 @@ const signup = asyncHandler(async (req, res) => {
       success: false,
       message: "Account created, but the verification email could not be sent. Please request a new code.",
       userId: user._id,
+      devOtp: process.env.NODE_ENV !== "production" ? otp : undefined,
     });
   }
 
@@ -113,6 +114,7 @@ const signup = asyncHandler(async (req, res) => {
     success: true,
     message: "Account created. Your verification code is on its way to your email.",
     userId: user._id,
+    devOtp: process.env.NODE_ENV !== "production" ? otp : undefined,
   });
 });
 

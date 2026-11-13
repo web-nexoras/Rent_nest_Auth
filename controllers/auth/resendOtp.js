@@ -52,12 +52,14 @@ const resendOtp = asyncHandler(async (req, res) => {
     return res.status(502).json({
       success: false,
       message: "Could not send verification email. Please try again in a few moments.",
+      devOtp: process.env.NODE_ENV !== "production" ? otp : undefined,
     });
   }
 
   return res.status(200).json({
     success: true,
     message: "OTP resent successfully. Please check your email.",
+    devOtp: process.env.NODE_ENV !== "production" ? otp : undefined,
   });
 });
 
