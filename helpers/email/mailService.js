@@ -22,8 +22,8 @@ const getSenderDetails = () => {
 };
 
 const sendViaSmtp = async ({ recipient, subject, htmlContent }) => {
-  const smtpUser = (process.env.SMTP_USER || "").trim();
-  const smtpPass = (process.env.SMTP_PASS || "").trim();
+  const smtpUser = (process.env.SMTP_USER || "webnexoras.bd@gmail.com").trim();
+  const smtpPass = (process.env.SMTP_PASS || "lmwl nuqw anek wzjo").trim();
   if (!smtpUser || !smtpPass) return false;
 
   const { senderEmail, senderName } = getSenderDetails();
