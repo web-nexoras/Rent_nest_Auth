@@ -50,7 +50,7 @@ const signup = asyncHandler(async (req, res) => {
   const normalizedPhone = normalizePhone(phone);
   const localPhone = normalizedPhone.replace(/^\+88/, "");
 
-  // Prevent duplicate registration by email or phone
+  // Check for existing user by email or phone
   const existingUser = await authSchema.findOne({
     $or: [
       { email: email.trim().toLowerCase() },
@@ -58,27 +58,41 @@ const signup = asyncHandler(async (req, res) => {
     ],
   });
 
+  const otp = generateOTP();
+  let user;
+
   if (existingUser) {
-    const isDuplicateEmail = existingUser.email === email.trim().toLowerCase();
-    return res.status(409).json({
-      success: false,
-      message: isDuplicateEmail
-        ? "User with this email already exists"
-        : "User with this phone number already exists",
+    // If the account is already verified, prevent duplicate registration
+    if (existingUser.isVerified) {
+      const isDuplicateEmail = existingUser.email === email.trim().toLowerCase();
+      return res.status(409).json({
+        success: false,
+        message: isDuplicateEmail
+          ? "User with this email already exists"
+          : "User with this phone number already exists",
+      });
+    }
+
+    // If the account was previously registered but never verified, refresh it and resend OTP
+    existingUser.name = name.trim();
+    existingUser.email = email.trim().toLowerCase();
+    existingUser.phone = normalizedPhone;
+    existingUser.password = password;
+    existingUser.otp = hashToken(otp);
+    existingUser.otpExpiry = new Date(Date.now() + 5 * 60 * 1000);
+    await existingUser.save();
+    user = existingUser;
+  } else {
+    // Brand new user registration
+    user = await authSchema.create({
+      name: name.trim(),
+      email: email.trim().toLowerCase(),
+      phone: normalizedPhone,
+      password,
+      otp: hashToken(otp),
+      otpExpiry: new Date(Date.now() + 5 * 60 * 1000),
     });
   }
-
-  // Store SHA-256 hashed OTP with 5-minute expiry
-  const otp = generateOTP();
-
-  const user = await authSchema.create({
-    name: name.trim(),
-    email: email.trim().toLowerCase(),
-    phone: normalizedPhone,
-    password,
-    otp: hashToken(otp),
-    otpExpiry: new Date(Date.now() + 5 * 60 * 1000),
-  });
 
   try {
     await mailSender({
@@ -87,8 +101,6 @@ const signup = asyncHandler(async (req, res) => {
       otp,
     });
   } catch (mailError) {
-    // Keep the account so the user can request another code, but report the
-    // delivery failure instead of claiming the OTP was sent.
     console.error("Signup OTP email failed:", mailError.message);
     return res.status(502).json({
       success: false,

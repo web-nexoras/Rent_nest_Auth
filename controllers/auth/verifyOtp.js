@@ -12,10 +12,13 @@ const verifyOtp = asyncHandler(async (req, res) => {
     });
   }
 
+  const cleanEmail = String(email).trim().toLowerCase();
+  const cleanOtp = String(otp).trim();
+
   // Verify hashed OTP and check expiry
   const user = await authSchema.findOne({
-    email,
-    otp: hashToken(String(otp).trim()),
+    email: cleanEmail,
+    otp: hashToken(cleanOtp),
     otpExpiry: { $gt: new Date() },
     isVerified: false,
   });
