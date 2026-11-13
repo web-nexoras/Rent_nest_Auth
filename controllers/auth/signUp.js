@@ -80,13 +80,22 @@ const signup = asyncHandler(async (req, res) => {
     otpExpiry: new Date(Date.now() + 5 * 60 * 1000),
   });
 
-  void mailSender({
-    email: user.email,
-    subject: "Rent Nest - Email Verification OTP",
-    otp,
-  }).catch((mailError) => {
-    console.error("Signup OTP email failed:", mailError);
-  });
+  try {
+    await mailSender({
+      email: user.email,
+      subject: "Rent Nest - Email Verification OTP",
+      otp,
+    });
+  } catch (mailError) {
+    // Keep the account so the user can request another code, but report the
+    // delivery failure instead of claiming the OTP was sent.
+    console.error("Signup OTP email failed:", mailError.message);
+    return res.status(502).json({
+      success: false,
+      message: "Account created, but the verification email could not be sent. Please request a new code.",
+      userId: user._id,
+    });
+  }
 
   return res.status(201).json({
     success: true,
