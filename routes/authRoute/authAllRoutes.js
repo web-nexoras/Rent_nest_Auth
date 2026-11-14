@@ -15,7 +15,12 @@ const { updateProfile } = require("../../controllers/auth/updateProfile");
 const { authMiddleware } = require("../../middlewares/authMiddleware");
 const { clearCacheOnSuccess } = require("../../middlewares/redisCache");
 
-const clearAuthCache = clearCacheOnSuccess("admin", "tenants", "tenant", "units");
+const clearAuthCache = clearCacheOnSuccess(
+  "admin",
+  "tenants",
+  "tenant",
+  "units",
+);
 
 router.post("/signup", authLimiter, clearAuthCache, signup);
 router.post("/verify-otp", authLimiter, clearAuthCache, verifyOtp);
